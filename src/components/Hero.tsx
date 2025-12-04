@@ -10,7 +10,7 @@ export function Hero() {
       <div className="absolute inset-0">
         <img
           src={heroImage}
-          alt="Elegant gold jewelry collection featuring rings and necklaces"
+          alt="Елегантна колекция бижута с пръстени и колиета"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/30" />
@@ -25,7 +25,7 @@ export function Hero() {
             transition={{ duration: 0.5 }}
             className="inline-block text-primary font-body text-sm tracking-widest uppercase mb-4"
           >
-            Handcrafted in Bulgaria
+            Изработено в България
           </motion.span>
           
           <motion.h1
@@ -34,8 +34,8 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-6"
           >
-            Timeless Elegance,{" "}
-            <span className="italic text-primary">Crafted for You</span>
+            Вечна елегантност,{" "}
+            <span className="italic text-primary">създадена за вас</span>
           </motion.h1>
           
           <motion.p
@@ -44,7 +44,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-body text-lg text-muted-foreground mb-8 leading-relaxed"
           >
-            Discover our curated collection of handmade and fine jewelry. From delicate everyday pieces to statement designs, find your perfect match.
+            Открийте нашата колекция от ръчно изработени и фини бижута. От деликатни ежедневни парчета до впечатляващи дизайни, намерете своето перфектно бижу.
           </motion.p>
           
           <motion.div
@@ -57,7 +57,7 @@ export function Hero() {
               to="/category/handmade"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-body font-medium rounded-sm hover:bg-primary/90 transition-colors group"
             >
-              Shop Collection
+              Разгледай колекцията
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
@@ -66,7 +66,7 @@ export function Hero() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-foreground/20 font-body font-medium rounded-sm hover:bg-foreground/5 transition-colors"
             >
-              Follow on Instagram
+              Последвай в Instagram
             </a>
           </motion.div>
         </div>

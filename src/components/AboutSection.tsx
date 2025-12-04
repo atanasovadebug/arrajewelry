@@ -12,7 +12,7 @@ export function AboutSection() {
             viewport={{ once: true }}
             className="inline-block text-primary font-body text-sm tracking-widest uppercase mb-4"
           >
-            Our Story
+            Нашата история
           </motion.span>
           
           <motion.h2
@@ -22,7 +22,7 @@ export function AboutSection() {
             transition={{ delay: 0.1 }}
             className="font-heading text-3xl md:text-4xl font-semibold mb-6"
           >
-            Crafted with Passion
+            Създадено със страст
           </motion.h2>
           
           <motion.p
@@ -32,9 +32,10 @@ export function AboutSection() {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground font-body text-lg leading-relaxed mb-8"
           >
-            Based in Bulgaria, Arra Jewelry brings you a curated selection of beautiful pieces 
-            that blend traditional craftsmanship with contemporary design. From handmade artisan 
-            creations to stunning moissanite pieces, each item is chosen for its quality and timeless appeal.
+            От България, Arra Jewelry ви предлага подбрана селекция от красиви бижута, 
+            които съчетават традиционно майсторство със съвременен дизайн. От ръчно изработени 
+            авторски творби до впечатляващи моасанитови парчета, всяко изделие е избрано за 
+            своето качество и вечна красота.
           </motion.p>
           
           <motion.div
@@ -50,7 +51,7 @@ export function AboutSection() {
               className="inline-flex items-center gap-2 text-primary font-body font-medium hover:underline"
             >
               <Instagram className="w-5 h-5" />
-              Follow our journey @arra_jewelry_vt
+              Последвай ни @arra_jewelry_vt
             </a>
           </motion.div>
         </div>

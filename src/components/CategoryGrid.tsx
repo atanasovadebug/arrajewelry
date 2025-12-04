@@ -7,26 +7,26 @@ import categoryMoissanite from "@/assets/category-moissanite.jpg";
 
 const categories = [
   {
-    name: "Handmade",
-    description: "Artisan crafted with love",
+    name: "Ръчна изработка",
+    description: "Уникални авторски творби",
     image: categoryHandmade,
     href: "/category/handmade",
   },
   {
-    name: "Stainless Steel",
-    description: "Modern & durable",
+    name: "Неръждаема стомана",
+    description: "Модерни и издръжливи",
     image: categorySteel,
     href: "/category/stainless-steel",
   },
   {
-    name: "Silver",
-    description: "Timeless elegance",
+    name: "Сребро",
+    description: "Вечна елегантност",
     image: categorySilver,
     href: "/category/silver",
   },
   {
-    name: "Moissanite",
-    description: "Brilliant sparkle",
+    name: "Моасанит",
+    description: "Блестящо сияние",
     image: categoryMoissanite,
     href: "/category/moissanite",
   },
@@ -65,7 +65,7 @@ export function CategoryGrid() {
             transition={{ duration: 0.5 }}
             className="font-heading text-3xl md:text-4xl font-semibold mb-4"
           >
-            Shop by Collection
+            Разгледай по колекция
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -74,7 +74,7 @@ export function CategoryGrid() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-muted-foreground font-body max-w-md mx-auto"
           >
-            Explore our carefully curated collections, each with its own unique character
+            Открийте нашите внимателно подбрани колекции, всяка със свой уникален характер
           </motion.p>
         </div>
 
@@ -93,7 +93,7 @@ export function CategoryGrid() {
               >
                 <img
                   src={category.image}
-                  alt={`${category.name} jewelry collection`}
+                  alt={`Колекция ${category.name} бижута`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />

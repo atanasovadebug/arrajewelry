@@ -6,31 +6,39 @@ import { Instagram } from "lucide-react";
 
 const categoryInfo: Record<string, { title: string; description: string }> = {
   handmade: {
-    title: "Handmade Jewelry",
-    description: "Unique artisan pieces crafted with care and attention to detail",
+    title: "Ръчна изработка",
+    description: "Уникални авторски бижута, изработени с внимание към детайла",
   },
   "stainless-steel": {
-    title: "Stainless Steel",
-    description: "Modern, durable pieces that stand the test of time",
+    title: "Неръждаема стомана",
+    description: "Модерни и издръжливи бижута, създадени да издържат теста на времето",
   },
   silver: {
-    title: "Silver Collection",
-    description: "Classic sterling silver jewelry for timeless elegance",
+    title: "Сребърна колекция",
+    description: "Класически сребърни бижута за вечна елегантност",
   },
   moissanite: {
-    title: "Moissanite",
-    description: "Brilliant stones with exceptional sparkle and fire",
+    title: "Моасанит",
+    description: "Блестящи камъни с изключителен блясък и огън",
   },
+};
+
+const subcategoryNames: Record<string, string> = {
+  rings: "пръстени",
+  earrings: "обеци",
+  necklaces: "колиета",
+  bracelets: "гривни",
 };
 
 export default function CategoryPage() {
   const { category, subcategory } = useParams();
   const info = categoryInfo[category || ""] || {
-    title: "Collection",
-    description: "Explore our beautiful jewelry collection",
+    title: "Колекция",
+    description: "Разгледайте нашата красива колекция бижута",
   };
 
   const basePath = `/category/${category}`;
+  const subcategoryLabel = subcategory ? subcategoryNames[subcategory] || subcategory : "колекцията";
 
   return (
     <Layout>
@@ -62,11 +70,11 @@ export default function CategoryPage() {
           >
             <div className="max-w-md mx-auto">
               <h3 className="font-heading text-xl font-medium mb-3">
-                Coming Soon
+                Очаквайте скоро
               </h3>
               <p className="text-muted-foreground font-body mb-6">
-                Our {subcategory ? subcategory : "collection"} is being curated. 
-                Visit our Instagram for available pieces!
+                Нашите {subcategoryLabel} се подготвят. 
+                Посетете нашия Instagram за налични бижута!
               </p>
               <a
                 href="https://instagram.com/arra_jewelry_vt"
@@ -75,7 +83,7 @@ export default function CategoryPage() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-body font-medium rounded-sm hover:bg-primary/90 transition-colors"
               >
                 <Instagram className="w-5 h-5" />
-                Shop on Instagram
+                Пазарувай в Instagram
               </a>
             </div>
           </motion.div>
