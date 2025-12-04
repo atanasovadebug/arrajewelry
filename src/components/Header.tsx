@@ -14,24 +14,44 @@ import { cn } from "@/lib/utils";
 
 const categories = [
   {
-    name: "Handmade",
+    name: "Ръчна изработка",
     href: "/category/handmade",
-    subcategories: ["Rings", "Earrings", "Necklaces", "Bracelets"],
+    subcategories: [
+      { name: "Пръстени", slug: "rings" },
+      { name: "Обеци", slug: "earrings" },
+      { name: "Колиета", slug: "necklaces" },
+      { name: "Гривни", slug: "bracelets" },
+    ],
   },
   {
-    name: "Stainless Steel",
+    name: "Неръждаема стомана",
     href: "/category/stainless-steel",
-    subcategories: ["Rings", "Earrings", "Necklaces", "Bracelets"],
+    subcategories: [
+      { name: "Пръстени", slug: "rings" },
+      { name: "Обеци", slug: "earrings" },
+      { name: "Колиета", slug: "necklaces" },
+      { name: "Гривни", slug: "bracelets" },
+    ],
   },
   {
-    name: "Silver",
+    name: "Сребро",
     href: "/category/silver",
-    subcategories: ["Rings", "Earrings", "Necklaces", "Bracelets"],
+    subcategories: [
+      { name: "Пръстени", slug: "rings" },
+      { name: "Обеци", slug: "earrings" },
+      { name: "Колиета", slug: "necklaces" },
+      { name: "Гривни", slug: "bracelets" },
+    ],
   },
   {
-    name: "Moissanite",
+    name: "Моасанит",
     href: "/category/moissanite",
-    subcategories: ["Rings", "Earrings", "Necklaces", "Bracelets"],
+    subcategories: [
+      { name: "Пръстени", slug: "rings" },
+      { name: "Обеци", slug: "earrings" },
+      { name: "Колиета", slug: "necklaces" },
+      { name: "Гривни", slug: "bracelets" },
+    ],
   },
 ];
 
@@ -62,16 +82,16 @@ export function Header() {
                     <NavigationMenuContent>
                       <ul className="grid w-[200px] gap-1 p-3">
                         {category.subcategories.map((sub) => (
-                          <li key={sub}>
+                          <li key={sub.slug}>
                             <NavigationMenuLink asChild>
                               <Link
-                                to={`${category.href}/${sub.toLowerCase()}`}
+                                to={`${category.href}/${sub.slug}`}
                                 className={cn(
                                   "block select-none rounded-sm px-3 py-2 text-sm font-body leading-none no-underline outline-none transition-colors",
                                   "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                 )}
                               >
-                                {sub}
+                                {sub.name}
                               </Link>
                             </NavigationMenuLink>
                           </li>
@@ -98,7 +118,7 @@ export function Header() {
             <button
               className="md:hidden p-2 -mr-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
+              aria-label="Меню"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -145,12 +165,12 @@ export function Header() {
                         <div className="pb-3 pl-4 space-y-2">
                           {category.subcategories.map((sub) => (
                             <Link
-                              key={sub}
-                              to={`${category.href}/${sub.toLowerCase()}`}
+                              key={sub.slug}
+                              to={`${category.href}/${sub.slug}`}
                               className="block py-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              {sub}
+                              {sub.name}
                             </Link>
                           ))}
                         </div>

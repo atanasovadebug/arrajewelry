@@ -2,11 +2,11 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const subcategories = [
-  { name: "All", path: "" },
-  { name: "Rings", path: "/rings" },
-  { name: "Earrings", path: "/earrings" },
-  { name: "Necklaces", path: "/necklaces" },
-  { name: "Bracelets", path: "/bracelets" },
+  { name: "Всички", path: "" },
+  { name: "Пръстени", path: "/rings" },
+  { name: "Обеци", path: "/earrings" },
+  { name: "Колиета", path: "/necklaces" },
+  { name: "Гривни", path: "/bracelets" },
 ];
 
 interface SubcategoryNavProps {

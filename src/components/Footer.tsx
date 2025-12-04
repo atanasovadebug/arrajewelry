@@ -1,11 +1,11 @@
-import { Instagram, Mail, MapPin } from "lucide-react";
+import { Instagram, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const categories = [
-  { name: "Handmade", href: "/category/handmade" },
-  { name: "Stainless Steel", href: "/category/stainless-steel" },
-  { name: "Silver", href: "/category/silver" },
-  { name: "Moissanite", href: "/category/moissanite" },
+  { name: "Ръчна изработка", href: "/category/handmade" },
+  { name: "Неръждаема стомана", href: "/category/stainless-steel" },
+  { name: "Сребро", href: "/category/silver" },
+  { name: "Моасанит", href: "/category/moissanite" },
 ];
 
 export function Footer() {
@@ -17,7 +17,7 @@ export function Footer() {
           <div>
             <h3 className="font-heading text-xl font-semibold mb-4">Arra Jewelry</h3>
             <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-              Handcrafted with love in Bulgaria. Each piece tells a story of elegance and timeless beauty.
+              Ръчно изработени с любов в България. Всяко бижу разказва история за елегантност и вечна красота.
             </p>
             <div className="flex items-center gap-3">
               <a
@@ -34,7 +34,7 @@ export function Footer() {
 
           {/* Categories */}
           <div>
-            <h4 className="font-heading text-lg font-medium mb-4">Collections</h4>
+            <h4 className="font-heading text-lg font-medium mb-4">Колекции</h4>
             <ul className="space-y-2">
               {categories.map((cat) => (
                 <li key={cat.name}>
@@ -51,11 +51,11 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-heading text-lg font-medium mb-4">Contact</h4>
+            <h4 className="font-heading text-lg font-medium mb-4">Контакт</h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span>Bulgaria</span>
+                <span>България</span>
               </li>
               <li>
                 <a
@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="mt-12 pt-8 border-t border-border text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Arra Jewelry. All rights reserved.
+            © {new Date().getFullYear()} Arra Jewelry. Всички права запазени.
           </p>
         </div>
       </div>
