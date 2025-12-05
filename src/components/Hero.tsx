@@ -25,7 +25,7 @@ export function Hero() {
             transition={{ duration: 0.5 }}
             className="inline-block text-primary font-body text-sm tracking-widest uppercase mb-4"
           >
-            Изработено в България
+            Arra Jewelry • България
           </motion.span>
           
           <motion.h1
@@ -35,7 +35,7 @@ export function Hero() {
             className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-6"
           >
             Вечна елегантност,{" "}
-            <span className="italic text-primary">създадена за вас</span>
+            <span className="italic text-primary">избрана за вас</span>
           </motion.h1>
           
           <motion.p
@@ -44,7 +44,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-body text-lg text-muted-foreground mb-8 leading-relaxed"
           >
-            Открийте нашата колекция от ръчно изработени и фини бижута. От деликатни ежедневни парчета до впечатляващи дизайни, намерете своето перфектно бижу.
+            Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и моасанит.
           </motion.p>
           
           <motion.div
