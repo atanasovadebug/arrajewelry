@@ -2,19 +2,26 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-jewelry.jpg";
+import { SparkleEffect } from "./SparkleEffect";
 
 export function Hero() {
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img
+        <motion.img
+          initial={{ scale: 1.1 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
           src={heroImage}
           alt="Елегантна колекция бижута с пръстени и колиета"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/30" />
       </div>
+
+      {/* Falling Sparkles Effect */}
+      <SparkleEffect />
 
       {/* Content */}
       <div className="relative container mx-auto px-4 py-20">
