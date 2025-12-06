@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, Heart, Share2, Truck, CreditCard, Banknote, Building2, ShieldCheck } from "lucide-react";
 import { Layout } from "@/components/Layout";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
 
 // Demo product data - in real app this would come from a database
 const demoProduct = {
@@ -33,6 +34,8 @@ const demoProduct = {
 export default function ProductPage() {
   const { productId } = useParams();
   const { toast } = useToast();
+  const { addItem } = useCart();
+  const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -41,6 +44,13 @@ export default function ProductPage() {
   const product = demoProduct;
 
   const handleAddToCart = () => {
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      quantity,
+    });
     toast({
       title: "Добавено в количката",
       description: `${product.name} x${quantity} беше добавен в количката ви.`,
@@ -48,10 +58,14 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = () => {
-    toast({
-      title: "Преминаване към плащане",
-      description: "Ще бъдете пренасочени към страницата за плащане.",
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0],
+      quantity,
     });
+    navigate("/checkout");
   };
 
   const handleShare = () => {
