@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-jewelry.jpg";
 import { SparkleEffect } from "./SparkleEffect";
+import { VideoSparkleOverlay } from "./VideoSparkleOverlay";
 
 export function Hero() {
   return (
@@ -20,6 +21,9 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/30" />
       </div>
 
+      {/* Video Sparkle Overlay */}
+      <VideoSparkleOverlay />
+      
       {/* Falling Sparkles Effect */}
       <SparkleEffect />
 
@@ -51,7 +55,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-body text-lg text-muted-foreground mb-8 leading-relaxed"
           >
-            Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и моасанит.
+            Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и мойсанит.
           </motion.p>
           
           <motion.div
