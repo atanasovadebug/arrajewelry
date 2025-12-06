@@ -11,6 +11,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { CartDrawer } from "./CartDrawer";
 
 const categories = [
   {
@@ -104,13 +105,14 @@ export function Header() {
             </NavigationMenu>
           </nav>
 
-          {/* Social & Mobile Menu */}
-          <div className="flex items-center gap-4">
+          {/* Cart, Social & Mobile Menu */}
+          <div className="flex items-center gap-2">
+            <CartDrawer />
             <a
               href="https://instagram.com/arra_jewelry_vt"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-foreground/70 hover:text-primary transition-colors"
+              className="text-foreground/70 hover:text-primary transition-colors p-2"
               aria-label="Instagram"
             >
               <Instagram className="w-5 h-5" />
