@@ -85,25 +85,50 @@ export function CategoryGrid() {
           viewport={{ once: true }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {categories.map((category) => (
-            <motion.div key={category.name} variants={itemVariants}>
+          {categories.map((category, index) => (
+            <motion.div 
+              key={category.name} 
+              variants={itemVariants}
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}
+            >
               <Link
                 to={category.href}
                 className="group block relative aspect-square overflow-hidden rounded-sm"
               >
-                <img
+                <motion.img
                   src={category.image}
                   alt={`Колекция ${category.name} бижута`}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover"
+                  initial={{ scale: 1.1 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.2, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.08 }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/70 via-foreground/20 to-transparent" />
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent"
+                  whileHover={{ opacity: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">
-                  <h3 className="font-heading text-xl font-semibold text-background mb-1">
+                  <motion.h3 
+                    className="font-heading text-xl font-semibold text-background mb-1"
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  >
                     {category.name}
-                  </h3>
-                  <p className="font-body text-sm text-background/80">
+                  </motion.h3>
+                  <motion.p 
+                    className="font-body text-sm text-background/80"
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                  >
                     {category.description}
-                  </p>
+                  </motion.p>
                 </div>
               </Link>
             </motion.div>
