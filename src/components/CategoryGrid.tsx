@@ -64,9 +64,9 @@ export function CategoryGrid() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-block bg-foreground/95 px-8 py-4 rounded-sm"
+            className="inline-block bg-black px-8 py-4 rounded-sm"
           >
-            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-background">
+            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-white">
               Разгледай по колекция
             </h2>
           </motion.div>
@@ -115,7 +115,7 @@ export function CategoryGrid() {
                 />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">
                   <motion.h3 
-                    className="font-heading text-xl font-semibold text-background mb-1"
+                    className="font-heading text-xl font-semibold text-white mb-1"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -124,7 +124,7 @@ export function CategoryGrid() {
                     {category.name}
                   </motion.h3>
                   <motion.p 
-                    className="font-body text-sm text-background/80"
+                    className="font-body text-sm text-white/80"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
