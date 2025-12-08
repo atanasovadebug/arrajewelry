@@ -59,15 +59,17 @@ export function CategoryGrid() {
       <VideoSparkleOverlay />
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
-          <motion.h2
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="font-heading text-3xl md:text-4xl font-semibold mb-4"
+            className="inline-block bg-foreground/95 px-8 py-4 rounded-sm"
           >
-            Разгледай по колекция
-          </motion.h2>
+            <h2 className="font-heading text-3xl md:text-4xl font-semibold text-background">
+              Разгледай по колекция
+            </h2>
+          </motion.div>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -107,8 +109,8 @@ export function CategoryGrid() {
                   whileHover={{ scale: 1.08 }}
                 />
                 <motion.div 
-                  className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/30 to-transparent"
-                  whileHover={{ opacity: 0.9 }}
+                  className="absolute inset-0 bg-gradient-to-t from-[hsl(220,60%,15%)] via-[hsl(220,50%,20%)/60%] to-transparent"
+                  whileHover={{ opacity: 0.95 }}
                   transition={{ duration: 0.3 }}
                 />
                 <div className="absolute inset-0 flex flex-col justify-end p-6">
