@@ -21,7 +21,7 @@ export function VideoSparkleOverlay() {
         style={{ filter: "contrast(1.2) brightness(1.3)" }}
       >
         <source
-          src="https://videos.pexels.com/video-files/3129671/3129671-uhd_2560_1440_30fps.mp4"
+          src="https://cdn.pixabay.com/video/2023/10/02/183279-870457579_large.mp4"
           type="video/mp4"
         />
       </video>
