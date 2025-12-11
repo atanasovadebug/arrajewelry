@@ -1,0 +1,514 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { Trash2, Plus, Upload, X, Edit2, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const categories = [
+  { value: 'handmade', label: 'Ръчно изработени бижута' },
+  { value: 'steel', label: 'Неръждаема стомана' },
+  { value: 'silver', label: 'Сребро' },
+  { value: 'moissanite', label: 'Моасанит' },
+];
+
+const subcategories = [
+  { value: 'rings', label: 'Пръстени' },
+  { value: 'earrings', label: 'Обеци' },
+  { value: 'necklaces', label: 'Колиета' },
+  { value: 'bracelets', label: 'Гривни' },
+];
+
+interface Product {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  original_price: number | null;
+  category: string;
+  subcategory: string | null;
+  images: string[];
+  stock: number;
+  specifications: unknown;
+  is_active: boolean | null;
+}
+
+export default function AdminPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  
+  // Form state
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
+  const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
+  const [stock, setStock] = useState('0');
+  const [images, setImages] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Грешка при зареждане на продуктите');
+      console.error(error);
+    } else {
+      setProducts(data || []);
+    }
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setName('');
+    setDescription('');
+    setPrice('');
+    setOriginalPrice('');
+    setCategory('');
+    setSubcategory('');
+    setStock('0');
+    setImages([]);
+    setSpecifications([]);
+    setEditingProduct(null);
+  };
+
+  const openNewProductForm = () => {
+    resetForm();
+    setIsFormOpen(true);
+  };
+
+  const openEditForm = (product: Product) => {
+    setEditingProduct(product);
+    setName(product.name);
+    setDescription(product.description || '');
+    setPrice(product.price.toString());
+    setOriginalPrice(product.original_price?.toString() || '');
+    setCategory(product.category);
+    setSubcategory(product.subcategory || '');
+    setStock(product.stock.toString());
+    setImages(product.images || []);
+    const specs = product.specifications as Record<string, unknown> | null;
+    setSpecifications(
+      Object.entries(specs || {}).map(([key, value]) => ({ key, value: String(value) }))
+    );
+    setIsFormOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    const newImages: string[] = [];
+
+    for (const file of Array.from(files)) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, file);
+
+      if (uploadError) {
+        toast.error(`Грешка при качване на ${file.name}`);
+        console.error(uploadError);
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(fileName);
+
+      newImages.push(urlData.publicUrl);
+    }
+
+    setImages([...images, ...newImages]);
+    setUploading(false);
+    toast.success('Снимките са качени успешно');
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const addSpecification = () => {
+    setSpecifications([...specifications, { key: '', value: '' }]);
+  };
+
+  const updateSpecification = (index: number, field: 'key' | 'value', value: string) => {
+    const updated = [...specifications];
+    updated[index][field] = value;
+    setSpecifications(updated);
+  };
+
+  const removeSpecification = (index: number) => {
+    setSpecifications(specifications.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!name || !price || !category) {
+      toast.error('Моля попълнете задължителните полета');
+      return;
+    }
+
+    const specsObject = specifications.reduce((acc, { key, value }) => {
+      if (key && value) acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const productData = {
+      name: name.trim(),
+      description: description.trim() || null,
+      price: parseFloat(price),
+      original_price: originalPrice ? parseFloat(originalPrice) : null,
+      category,
+      subcategory: subcategory || null,
+      stock: parseInt(stock) || 0,
+      images,
+      specifications: specsObject,
+      is_active: true,
+    };
+
+    if (editingProduct) {
+      const { error } = await supabase
+        .from('products')
+        .update(productData)
+        .eq('id', editingProduct.id);
+
+      if (error) {
+        toast.error('Грешка при обновяване на продукта');
+        console.error(error);
+      } else {
+        toast.success('Продуктът е обновен успешно');
+        resetForm();
+        setIsFormOpen(false);
+        fetchProducts();
+      }
+    } else {
+      const { error } = await supabase.from('products').insert(productData);
+
+      if (error) {
+        toast.error('Грешка при добавяне на продукта');
+        console.error(error);
+      } else {
+        toast.success('Продуктът е добавен успешно');
+        resetForm();
+        setIsFormOpen(false);
+        fetchProducts();
+      }
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    if (!confirm('Сигурни ли сте, че искате да изтриете този продукт?')) return;
+
+    const { error } = await supabase.from('products').delete().eq('id', id);
+
+    if (error) {
+      toast.error('Грешка при изтриване на продукта');
+      console.error(error);
+    } else {
+      toast.success('Продуктът е изтрит успешно');
+      fetchProducts();
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-heading text-foreground">Админ панел</h1>
+          </div>
+          {!isFormOpen && (
+            <Button onClick={openNewProductForm} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Добави продукт
+            </Button>
+          )}
+        </div>
+
+        {isFormOpen ? (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                {editingProduct ? 'Редактиране на продукт' : 'Нов продукт'}
+                <Button variant="ghost" size="icon" onClick={() => { resetForm(); setIsFormOpen(false); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Име на продукта *</Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Златен пръстен с диамант"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Цена (лв.) *</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="99.99"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="originalPrice">Стара цена (лв.)</Label>
+                      <Input
+                        id="originalPrice"
+                        type="number"
+                        step="0.01"
+                        value={originalPrice}
+                        onChange={(e) => setOriginalPrice(e.target.value)}
+                        placeholder="129.99"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Категория *</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Изберете категория" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="subcategory">Подкатегория</Label>
+                    <Select value={subcategory} onValueChange={setSubcategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Изберете подкатегория" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subcategories.map((sub) => (
+                          <SelectItem key={sub.value} value={sub.value}>
+                            {sub.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="stock">Наличност</Label>
+                    <Input
+                      id="stock"
+                      type="number"
+                      value={stock}
+                      onChange={(e) => setStock(e.target.value)}
+                      placeholder="10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Описание</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Описание на продукта..."
+                    rows={4}
+                  />
+                </div>
+
+                {/* Image Upload */}
+                <div className="space-y-4">
+                  <Label>Снимки</Label>
+                  <div className="flex flex-wrap gap-4">
+                    {images.map((img, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={img}
+                          alt={`Product ${index + 1}`}
+                          className="w-24 h-24 object-cover rounded-lg border border-border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    <label className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                      {uploading ? (
+                        <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+                      ) : (
+                        <Upload className="h-6 w-6 text-muted-foreground" />
+                      )}
+                    </label>
+                  </div>
+                </div>
+
+                {/* Specifications */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label>Характеристики</Label>
+                    <Button type="button" variant="outline" size="sm" onClick={addSpecification}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Добави
+                    </Button>
+                  </div>
+                  {specifications.map((spec, index) => (
+                    <div key={index} className="flex gap-4 items-center">
+                      <Input
+                        placeholder="Ключ (напр. Материал)"
+                        value={spec.key}
+                        onChange={(e) => updateSpecification(index, 'key', e.target.value)}
+                        className="flex-1"
+                      />
+                      <Input
+                        placeholder="Стойност (напр. Злато 14К)"
+                        value={spec.value}
+                        onChange={(e) => updateSpecification(index, 'value', e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeSpecification(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-4">
+                  <Button type="submit" className="flex-1">
+                    {editingProduct ? 'Запази промените' : 'Добави продукт'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => { resetForm(); setIsFormOpen(false); }}
+                  >
+                    Отказ
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        ) : null}
+
+        {/* Products List */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Продукти ({products.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">Зареждане...</div>
+            ) : products.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Няма добавени продукти
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {products.map((product) => (
+                  <div
+                    key={product.id}
+                    className="border border-border rounded-lg p-4 flex gap-4"
+                  >
+                    <div className="w-20 h-20 flex-shrink-0">
+                      {product.images?.[0] ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted rounded-md flex items-center justify-center text-muted-foreground text-xs">
+                          Няма снимка
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-foreground truncate">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {categories.find(c => c.value === product.category)?.label}
+                      </p>
+                      <p className="text-primary font-semibold">{product.price.toFixed(2)} лв.</p>
+                      <p className="text-xs text-muted-foreground">Наличност: {product.stock}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditForm(product)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteProduct(product.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
