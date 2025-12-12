@@ -45,7 +45,7 @@ const categories = [
     ],
   },
   {
-    name: "Моасанит",
+    name: "Мойсанит",
     href: "/category/moissanite",
     subcategories: [
       { name: "Пръстени", slug: "rings" },

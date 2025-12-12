@@ -25,7 +25,7 @@ const categories = [
     href: "/category/silver",
   },
   {
-    name: "Моасанит",
+    name: "Мойсанит",
     description: "Блестящо сияние",
     image: categoryMoissanite,
     href: "/category/moissanite",
