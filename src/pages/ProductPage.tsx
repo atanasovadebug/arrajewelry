@@ -8,27 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-// Demo product data - in real app this would come from a database
-const demoProduct = {
-  id: "1",
-  name: "Елегантен пръстен с моасанит",
-  price: 189,
-  originalPrice: 220,
-  description: "Изящен пръстен с централен моасанитов камък, обрамчен в стерлингово сребро. Перфектен избор за специални моменти или ежедневна елегантност.",
-  material: "Стерлингово сребро 925",
-  stone: "Моасанит 1 карат",
-  size: "Регулируем (16-18)",
-  weight: "3.2 грама",
-  color: "Сребрист",
-  category: "moissanite",
-  subcategory: "rings",
-  images: [
-    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=800&auto=format&fit=crop",
-  ],
-  inStock: true,
+const categoryNames: Record<string, string> = {
+  moissanite: "Мойсанит",
+  silver: "Сребро",
+  "stainless-steel": "Неръждаема стомана",
+  handmade: "Ръчна изработка",
 };
 
 export default function ProductPage() {
@@ -40,15 +27,28 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // In real app, fetch product by productId
-  const product = demoProduct;
+  const { data: product, isLoading, error } = useQuery({
+    queryKey: ["product", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", productId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!productId,
+  });
 
   const handleAddToCart = () => {
+    if (!product) return;
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
-      image: product.images[0],
+      price: Number(product.price),
+      image: product.images?.[0] || "/placeholder.svg",
       quantity,
     });
     toast({
@@ -58,11 +58,12 @@ export default function ProductPage() {
   };
 
   const handleBuyNow = () => {
+    if (!product) return;
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
-      image: product.images[0],
+      price: Number(product.price),
+      image: product.images?.[0] || "/placeholder.svg",
       quantity,
     });
     navigate("/checkout");
@@ -76,6 +77,43 @@ export default function ProductPage() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="grid lg:grid-cols-2 gap-12">
+            <div className="aspect-square bg-secondary/30 animate-pulse rounded-sm" />
+            <div className="space-y-4">
+              <div className="h-8 bg-secondary/30 animate-pulse rounded w-3/4" />
+              <div className="h-6 bg-secondary/30 animate-pulse rounded w-1/4" />
+              <div className="h-24 bg-secondary/30 animate-pulse rounded" />
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h1 className="font-heading text-2xl mb-4">Продуктът не е намерен</h1>
+          <p className="text-muted-foreground mb-6">
+            Съжаляваме, но този продукт не съществува или е премахнат.
+          </p>
+          <Link to="/">
+            <Button>Обратно към началото</Button>
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
+  const specifications = product.specifications as Record<string, string> | null;
+  const inStock = product.stock > 0;
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
@@ -87,10 +125,8 @@ export default function ProductPage() {
         >
           <Link to="/" className="hover:text-primary transition-colors">Начало</Link>
           <span>/</span>
-          <Link to={`/category/${product.category}`} className="hover:text-primary transition-colors capitalize">
-            {product.category === "moissanite" ? "Моасанит" : 
-             product.category === "silver" ? "Сребро" :
-             product.category === "steel" ? "Неръждаема стомана" : "Ръчна изработка"}
+          <Link to={`/category/${product.category}`} className="hover:text-primary transition-colors">
+            {categoryNames[product.category] || product.category}
           </Link>
           <span>/</span>
           <span className="text-foreground">{product.name}</span>
@@ -110,26 +146,28 @@ export default function ProductPage() {
                 initial={{ opacity: 0.8, scale: 1.02 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
-                src={product.images[selectedImage]}
+                src={images[selectedImage]}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="flex gap-3">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`w-20 h-20 rounded-sm overflow-hidden transition-all ${
-                    selectedImage === idx 
-                      ? "ring-2 ring-primary ring-offset-2" 
-                      : "opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="flex gap-3">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`w-20 h-20 rounded-sm overflow-hidden transition-all ${
+                      selectedImage === idx 
+                        ? "ring-2 ring-primary ring-offset-2" 
+                        : "opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Product Info */}
@@ -159,17 +197,17 @@ export default function ProductPage() {
               
               <div className="flex items-center gap-3 mt-4">
                 <span className="font-heading text-3xl font-semibold text-primary">{product.price} лв.</span>
-                {product.originalPrice && (
-                  <span className="text-lg text-muted-foreground line-through">{product.originalPrice} лв.</span>
-                )}
-                {product.originalPrice && (
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    -{Math.round((1 - product.price / product.originalPrice) * 100)}%
-                  </Badge>
+                {product.original_price && product.original_price > product.price && (
+                  <>
+                    <span className="text-lg text-muted-foreground line-through">{product.original_price} лв.</span>
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      -{Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)}%
+                    </Badge>
+                  </>
                 )}
               </div>
               
-              {product.inStock ? (
+              {inStock ? (
                 <Badge variant="outline" className="mt-3 text-green-600 border-green-600/30 bg-green-50">
                   В наличност
                 </Badge>
@@ -182,27 +220,21 @@ export default function ProductPage() {
 
             <Separator />
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            {product.description && (
+              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            )}
 
             {/* Product Specifications */}
-            <div className="grid grid-cols-2 gap-4 bg-secondary/30 p-5 rounded-sm">
-              <div>
-                <span className="text-sm text-muted-foreground">Материал</span>
-                <p className="font-medium">{product.material}</p>
+            {specifications && Object.keys(specifications).length > 0 && (
+              <div className="grid grid-cols-2 gap-4 bg-secondary/30 p-5 rounded-sm">
+                {Object.entries(specifications).map(([key, value]) => (
+                  <div key={key}>
+                    <span className="text-sm text-muted-foreground">{key}</span>
+                    <p className="font-medium">{value}</p>
+                  </div>
+                ))}
               </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Камък</span>
-                <p className="font-medium">{product.stone}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Размер</span>
-                <p className="font-medium">{product.size}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Тегло</span>
-                <p className="font-medium">{product.weight}</p>
-              </div>
-            </div>
+            )}
 
             {/* Quantity & Actions */}
             <div className="space-y-4">
@@ -229,7 +261,7 @@ export default function ProductPage() {
                 <Button 
                   className="flex-1 btn-elevated bg-primary hover:bg-primary/90"
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  disabled={!inStock}
                 >
                   Добави в количката
                 </Button>
@@ -237,7 +269,7 @@ export default function ProductPage() {
                   variant="outline" 
                   className="flex-1 btn-elevated"
                   onClick={handleBuyNow}
-                  disabled={!product.inStock}
+                  disabled={!inStock}
                 >
                   Купи сега
                 </Button>
@@ -255,7 +287,7 @@ export default function ProductPage() {
                   <Truck className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
                   <div>
                     <p className="font-medium">Доставка със Spidy</p>
-                    <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над 100€</p>
+                    <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над 100 лв.</p>
                   </div>
                 </div>
                 
@@ -303,7 +335,7 @@ export default function ProductPage() {
           className="mt-12"
         >
           <Link
-            to={`/category/${product.category}/${product.subcategory}`}
+            to={`/category/${product.category}${product.subcategory ? `/${product.subcategory}` : ''}`}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
