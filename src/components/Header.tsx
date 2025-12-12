@@ -3,13 +3,11 @@ import { Link } from "react-router-dom";
 import { Menu, X, Instagram, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CartDrawer } from "./CartDrawer";
 
@@ -72,37 +70,27 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:block">
-            <NavigationMenu>
-              <NavigationMenuList className="gap-1">
-                {categories.map((category) => (
-                  <NavigationMenuItem key={category.name}>
-                    <NavigationMenuTrigger className="bg-transparent font-body text-sm font-medium">
-                      {category.name}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[200px] gap-1 p-3">
-                        {category.subcategories.map((sub) => (
-                          <li key={sub.slug}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                to={`${category.href}/${sub.slug}`}
-                                className={cn(
-                                  "block select-none rounded-sm px-3 py-2 text-sm font-body leading-none no-underline outline-none transition-colors",
-                                  "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                                )}
-                              >
-                                {sub.name}
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+          <nav className="hidden md:flex items-center gap-1">
+            {categories.map((category) => (
+              <DropdownMenu key={category.name}>
+                <DropdownMenuTrigger className="flex items-center gap-1 bg-transparent font-body text-sm font-medium px-4 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors outline-none">
+                  {category.name}
+                  <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[200px] bg-popover">
+                  {category.subcategories.map((sub) => (
+                    <DropdownMenuItem key={sub.slug} asChild>
+                      <Link
+                        to={`${category.href}/${sub.slug}`}
+                        className="w-full cursor-pointer"
+                      >
+                        {sub.name}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ))}
           </nav>
 
           {/* Cart, Social & Mobile Menu */}
