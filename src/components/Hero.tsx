@@ -43,17 +43,17 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-heading text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-6"
+            className="font-heading text-4xl md:text-5xl lg:text-6xl font-light tracking-wide leading-tight mb-6"
           >
             Вечна елегантност,{" "}
-            <span className="italic text-primary">избрана за вас</span>
+            <span className="italic text-primary font-extralight">избрана за вас</span>
           </motion.h1>
           
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="font-body text-lg text-muted-foreground mb-8 leading-relaxed"
+            className="font-heading text-lg text-muted-foreground mb-8 leading-relaxed font-light tracking-wide"
           >
             Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и мойсанит.
           </motion.p>
