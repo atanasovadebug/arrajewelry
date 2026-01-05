@@ -9,16 +9,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Banknote, Building2, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
+import { CreditCard, Building2, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
 
 const paymentMethods = [
-  {
-    id: "cod",
-    name: "Наложен платеж",
-    description: "Плащане при доставка",
-    icon: Banknote,
-  },
   {
     id: "card",
     name: "Дебитна/Кредитна карта",
@@ -37,7 +31,7 @@ export default function CheckoutPage() {
   const { items, subtotal, shippingCost, total, clearCart } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
