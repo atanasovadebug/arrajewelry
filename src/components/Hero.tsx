@@ -7,7 +7,7 @@ import { VideoSparkleOverlay } from "./VideoSparkleOverlay";
 
 export function Hero() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-black">
       {/* Background Image */}
       <div className="absolute inset-0">
         <motion.img
@@ -18,7 +18,7 @@ export function Hero() {
           alt="Елегантна колекция бижута с пръстени и колиета"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/60 to-transparent" />
       </div>
 
       {/* Video Sparkle Overlay */}
@@ -34,7 +34,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-block text-primary font-body text-sm tracking-widest uppercase mb-4"
+            className="inline-block text-white font-body text-sm tracking-widest uppercase mb-4"
           >
             Arra Jewelry • България
           </motion.span>
@@ -43,17 +43,17 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-heading text-4xl md:text-5xl lg:text-6xl font-light tracking-wide leading-tight mb-6"
+            className="font-heading text-4xl md:text-5xl lg:text-6xl font-light tracking-wide leading-tight mb-6 text-white"
           >
             Вечна елегантност,{" "}
-            <span className="italic text-primary font-extralight">избрана за вас</span>
+            <span className="italic text-white/80 font-extralight">избрана за вас</span>
           </motion.h1>
           
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="font-heading text-lg text-muted-foreground mb-8 leading-relaxed font-light tracking-wide"
+            className="font-heading text-lg text-white/70 mb-8 leading-relaxed font-light tracking-wide"
           >
             Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и мойсанит.
           </motion.p>
@@ -66,7 +66,7 @@ export function Hero() {
           >
             <Link
               to="/category/handmade"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-body font-medium rounded-sm hover:bg-primary/90 transition-colors group"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-black font-body font-medium rounded-sm hover:bg-white/90 transition-colors group"
             >
               Разгледай колекцията
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -75,7 +75,7 @@ export function Hero() {
               href="https://instagram.com/arra_jewelry_vt"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-foreground/20 font-body font-medium rounded-sm hover:bg-foreground/5 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-white/30 text-white font-body font-medium rounded-sm hover:bg-white/10 transition-colors"
             >
               Последвай в Instagram
             </a>
