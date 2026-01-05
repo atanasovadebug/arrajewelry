@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Trash2, Plus, Upload, X, Edit2, ArrowLeft } from 'lucide-react';
+import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { User } from '@supabase/supabase-js';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
 const categories = [
   { value: 'handmade', label: 'Ръчно изработени бижута' },
@@ -39,6 +44,10 @@ interface Product {
 }
 
 export default function AdminPage() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -56,9 +65,68 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
+  // Check authentication and admin role
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const checkAdminAccess = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate('/auth');
+        return;
+      }
+
+      setUser(session.user);
+
+      // Check admin role using the has_role function via RPC or direct query
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleError) {
+        console.error('Error checking admin role:', roleError);
+        toast.error('Грешка при проверка на правата за достъп');
+        navigate('/');
+        return;
+      }
+
+      if (!roleData) {
+        toast.error('Нямате администраторски права за достъп');
+        navigate('/');
+        return;
+      }
+
+      setIsAdmin(true);
+      setAuthLoading(false);
+    };
+
+    checkAdminAccess();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        navigate('/auth');
+      } else if (session) {
+        setUser(session.user);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [isAdmin]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success('Излязохте успешно');
+    navigate('/');
+  };
 
   const fetchProducts = async () => {
     const { data, error } = await supabase
@@ -118,6 +186,18 @@ export default function AdminPage() {
     const newImages: string[] = [];
 
     for (const file of Array.from(files)) {
+      // Validate file type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(`Невалиден тип файл: ${file.name}. Позволени са само JPEG, PNG и WebP.`);
+        continue;
+      }
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`Файлът е твърде голям: ${file.name}. Максимум 5MB.`);
+        continue;
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
@@ -140,7 +220,9 @@ export default function AdminPage() {
 
     setImages([...images, ...newImages]);
     setUploading(false);
-    toast.success('Снимките са качени успешно');
+    if (newImages.length > 0) {
+      toast.success('Снимките са качени успешно');
+    }
   };
 
   const removeImage = (index: number) => {
@@ -231,6 +313,18 @@ export default function AdminPage() {
     }
   };
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Проверка на правата за достъп...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
@@ -241,14 +335,25 @@ export default function AdminPage() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <h1 className="text-3xl font-heading text-foreground">Админ панел</h1>
+            <div>
+              <h1 className="text-3xl font-heading text-foreground">Админ панел</h1>
+              {user && (
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              )}
+            </div>
           </div>
-          {!isFormOpen && (
-            <Button onClick={openNewProductForm} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Добави продукт
+          <div className="flex items-center gap-2">
+            {!isFormOpen && (
+              <Button onClick={openNewProductForm} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Добави продукт
+              </Button>
+            )}
+            <Button variant="outline" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              Изход
             </Button>
-          )}
+          </div>
         </div>
 
         {isFormOpen ? (
