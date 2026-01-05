@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, Heart, Share2, Truck, CreditCard, Banknote, Building2, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Heart, Share2, Truck, CreditCard, Building2, ShieldCheck } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ export default function ProductPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string>("");
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
@@ -236,6 +238,24 @@ export default function ProductPage() {
               </div>
             )}
 
+            {/* Size Selection */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Размер:</label>
+              <Select value={selectedSize} onValueChange={setSelectedSize}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Изберете размер" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="XS">XS (14-15 см)</SelectItem>
+                  <SelectItem value="S">S (15-16 см)</SelectItem>
+                  <SelectItem value="M">M (16-17 см)</SelectItem>
+                  <SelectItem value="L">L (17-18 см)</SelectItem>
+                  <SelectItem value="XL">XL (18-19 см)</SelectItem>
+                  <SelectItem value="XXL">XXL (19-20 см)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Quantity & Actions */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -288,14 +308,6 @@ export default function ProductPage() {
                   <div>
                     <p className="font-medium">Доставка със Spidy</p>
                     <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над 100 лв.</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Banknote className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
-                  <div>
-                    <p className="font-medium">Наложен платеж</p>
-                    <p className="text-sm text-muted-foreground">Плащане при доставка</p>
                   </div>
                 </div>
                 

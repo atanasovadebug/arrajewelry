@@ -55,7 +55,7 @@ const itemVariants = {
 
 export function CategoryGrid() {
   return (
-    <section className="py-16 md:py-24 bg-background relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-black relative overflow-hidden">
       <VideoSparkleOverlay />
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-12">
@@ -75,7 +75,7 @@ export function CategoryGrid() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-muted-foreground font-body max-w-md mx-auto"
+            className="text-white/70 font-body max-w-md mx-auto"
           >
             Открийте нашите внимателно подбрани колекции, всяка със свой уникален характер
           </motion.p>
