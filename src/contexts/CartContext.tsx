@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { FREE_SHIPPING_THRESHOLD_BGN, EUR_TO_BGN_RATE } from "@/lib/currency";
 
 export interface CartItem {
   id: string;
@@ -24,8 +25,8 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const FREE_SHIPPING_THRESHOLD = 100; // EUR
-const SHIPPING_COST = 6; // EUR
+// Shipping cost in BGN (approximately 6 EUR)
+const SHIPPING_COST_BGN = 6 * EUR_TO_BGN_RATE;
 
 function getSessionId(): string {
   let sessionId = localStorage.getItem("cart_session_id");
@@ -87,7 +88,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : SHIPPING_COST_BGN;
   const total = subtotal + shippingCost;
 
   return (

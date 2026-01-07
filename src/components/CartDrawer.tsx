@@ -4,6 +4,7 @@ import { ShoppingBag, Minus, Plus, Trash2, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
 
 export function CartDrawer() {
   const { items, itemCount, subtotal, shippingCost, total, updateQuantity, removeItem } = useCart();
@@ -46,8 +47,8 @@ export function CartDrawer() {
                   />
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                    <p className="text-primary font-semibold mt-1">
-                      {item.price.toFixed(2)} лв.
+                    <p className="text-primary font-semibold mt-1 text-sm">
+                      {formatDualCurrency(item.price)}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
@@ -78,7 +79,7 @@ export function CartDrawer() {
             <div className="border-t pt-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Междинна сума</span>
-                <span>{subtotal.toFixed(2)} лв.</span>
+                <span>{formatDualCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Доставка</span>
@@ -86,18 +87,18 @@ export function CartDrawer() {
                   {shippingCost === 0 ? (
                     <span className="text-green-600">Безплатна</span>
                   ) : (
-                    `${shippingCost.toFixed(2)} лв.`
+                    formatDualCurrency(shippingCost)
                   )}
                 </span>
               </div>
               {shippingCost > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Безплатна доставка над 100 лв.
+                  Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} €
                 </p>
               )}
-              <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+              <div className="flex justify-between font-semibold pt-2 border-t">
                 <span>Общо</span>
-                <span>{total.toFixed(2)} лв.</span>
+                <span>{formatDualCurrency(total)}</span>
               </div>
               <Button className="w-full" size="lg" onClick={() => setOpen(false)} asChild>
                 <Link to="/checkout">Към плащане</Link>

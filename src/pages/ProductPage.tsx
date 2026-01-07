@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
 
 const categoryNames: Record<string, string> = {
   moissanite: "Мойсанит",
@@ -197,15 +198,21 @@ export default function ProductPage() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 mt-4">
-                <span className="font-heading text-3xl font-semibold text-primary">{product.price} лв.</span>
-                {product.original_price && product.original_price > product.price && (
-                  <>
-                    <span className="text-lg text-muted-foreground line-through">{product.original_price} лв.</span>
+              <div className="flex flex-col gap-2 mt-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
+                    {formatDualCurrency(Number(product.price))}
+                  </span>
+                  {product.original_price && product.original_price > product.price && (
                     <Badge variant="secondary" className="bg-primary/10 text-primary">
                       -{Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)}%
                     </Badge>
-                  </>
+                  )}
+                </div>
+                {product.original_price && product.original_price > product.price && (
+                  <span className="text-base text-muted-foreground line-through">
+                    {formatDualCurrency(Number(product.original_price))}
+                  </span>
                 )}
               </div>
               
@@ -307,7 +314,7 @@ export default function ProductPage() {
                   <Truck className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
                   <div>
                     <p className="font-medium">Доставка със Spidy</p>
-                    <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над 100 лв.</p>
+                    <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над {FREE_SHIPPING_THRESHOLD_EUR} €</p>
                   </div>
                 </div>
                 

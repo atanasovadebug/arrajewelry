@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Building2, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
 
 const paymentMethods = [
   {
@@ -341,7 +342,7 @@ export default function CheckoutPage() {
                         <p className="text-sm font-medium truncate">{item.name}</p>
                         <p className="text-sm text-muted-foreground">x{item.quantity}</p>
                         <p className="text-sm font-semibold">
-                          {(item.price * item.quantity).toFixed(2)} лв.
+                          {formatDualCurrency(item.price * item.quantity)}
                         </p>
                       </div>
                     </div>
@@ -351,7 +352,7 @@ export default function CheckoutPage() {
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Междинна сума</span>
-                    <span>{subtotal.toFixed(2)} лв.</span>
+                    <span>{formatDualCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Доставка (Spidy)</span>
@@ -359,18 +360,18 @@ export default function CheckoutPage() {
                       {shippingCost === 0 ? (
                         <span className="text-green-600">Безплатна</span>
                       ) : (
-                        `${shippingCost.toFixed(2)} лв.`
+                        formatDualCurrency(shippingCost)
                       )}
                     </span>
                   </div>
                   {shippingCost > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      Безплатна доставка над 100 лв.
+                      Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} €
                     </p>
                   )}
-                  <div className="flex justify-between font-semibold text-lg pt-2 border-t">
+                  <div className="flex justify-between font-semibold pt-2 border-t">
                     <span>Общо</span>
-                    <span>{total.toFixed(2)} лв.</span>
+                    <span>{formatDualCurrency(total)}</span>
                   </div>
                 </div>
 
