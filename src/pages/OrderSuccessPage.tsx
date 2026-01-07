@@ -1,12 +1,65 @@
+import { useEffect, useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
-import { CheckCircle, Package, Mail, ArrowRight } from "lucide-react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+import { CheckCircle, Package, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "sonner";
 
 export default function OrderSuccessPage() {
   const location = useLocation();
-  const orderId = location.state?.orderId;
+  const [searchParams] = useSearchParams();
+  const { clearCart } = useCart();
+  const [orderId, setOrderId] = useState<string | null>(location.state?.orderId || null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  // Handle Stripe redirect
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    
+    if (sessionId && !orderId) {
+      setIsVerifying(true);
+      
+      // Get cart items from sessionStorage
+      const pendingCartItems = sessionStorage.getItem("pending_cart_items");
+      const cartItems = pendingCartItems ? JSON.parse(pendingCartItems) : [];
+      
+      // Verify payment and create order
+      supabase.functions.invoke("verify-payment", {
+        body: { sessionId, cartItems },
+      })
+        .then(({ data, error }) => {
+          if (error) {
+            console.error("Payment verification error:", error);
+            toast.error("Грешка при потвърждаване на плащането");
+            return;
+          }
+          
+          if (data?.success) {
+            setOrderId(data.orderId);
+            clearCart();
+            sessionStorage.removeItem("pending_cart_items");
+            toast.success("Плащането е успешно!");
+          }
+        })
+        .finally(() => {
+          setIsVerifying(false);
+        });
+    }
+  }, [searchParams, orderId, clearCart]);
+
+  if (isVerifying) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary mb-4" />
+          <p className="text-lg text-muted-foreground">Потвърждаване на плащането...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

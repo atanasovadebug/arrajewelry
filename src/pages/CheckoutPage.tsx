@@ -57,9 +57,47 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // If card payment, redirect to Stripe
+      if (paymentMethod === "card") {
+        const { data, error } = await supabase.functions.invoke("create-checkout", {
+          body: {
+            items: items.map((item) => ({
+              productId: item.productId,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image,
+            })),
+            customerEmail: formData.email,
+            customerName: formData.name,
+            customerPhone: formData.phone,
+            shippingAddress: {
+              city: formData.city,
+              address: formData.address,
+              postalCode: formData.postalCode,
+            },
+            notes: formData.notes,
+            successUrl: `${window.location.origin}/order-success`,
+            cancelUrl: `${window.location.origin}/checkout`,
+          },
+        });
+
+        if (error) throw new Error(error.message);
+        
+        if (data?.url) {
+          // Store cart items in sessionStorage for order creation after payment
+          sessionStorage.setItem("pending_cart_items", JSON.stringify(items));
+          // Redirect to Stripe Checkout
+          window.location.href = data.url;
+          return;
+        } else {
+          throw new Error("Failed to create checkout session");
+        }
+      }
+
+      // Bank transfer - create order directly
       const sessionId = localStorage.getItem("cart_session_id") || crypto.randomUUID();
 
-      // Create order
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -84,7 +122,6 @@ export default function CheckoutPage() {
 
       if (orderError) throw orderError;
 
-      // Create order items
       const orderItems = items.map((item) => ({
         order_id: order.id,
         product_id: item.productId,
