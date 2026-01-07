@@ -5,6 +5,7 @@ import { SubcategoryNav } from "@/components/SubcategoryNav";
 import { Instagram } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDualCurrency } from "@/lib/currency";
 
 const categoryInfo: Record<string, { title: string; description: string }> = {
   handmade: {
@@ -131,13 +132,13 @@ export default function CategoryPage() {
                     <h3 className="font-body font-medium text-sm md:text-base group-hover:text-primary transition-colors line-clamp-2">
                       {product.name}
                     </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="font-heading font-semibold text-primary">
-                        {product.price} лв.
+                    <div className="flex flex-col gap-1 mt-1">
+                      <span className="font-heading font-semibold text-primary text-sm">
+                        {formatDualCurrency(Number(product.price))}
                       </span>
                       {product.original_price && product.original_price > product.price && (
-                        <span className="text-sm text-muted-foreground line-through">
-                          {product.original_price} лв.
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatDualCurrency(Number(product.original_price))}
                         </span>
                       )}
                     </div>
