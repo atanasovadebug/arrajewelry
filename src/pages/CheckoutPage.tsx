@@ -355,7 +355,7 @@ export default function CheckoutPage() {
                     <span>{formatDualCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Доставка (Spidy)</span>
+                    <span className="text-muted-foreground">Доставка (Speedy)</span>
                     <span>
                       {shippingCost === 0 ? (
                         <span className="text-green-600">Безплатна</span>

@@ -45,26 +45,46 @@ export default function ProductPage() {
     enabled: !!productId,
   });
 
+  const requiresSize = product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces';
+
   const handleAddToCart = () => {
     if (!product) return;
+    if (requiresSize && !selectedSize) {
+      toast({
+        title: "Изберете размер",
+        description: "Моля, изберете размер преди да добавите продукта в количката.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const productName = requiresSize ? `${product.name} (${selectedSize} см)` : product.name;
     addItem({
       productId: product.id,
-      name: product.name,
+      name: productName,
       price: Number(product.price),
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
     });
     toast({
       title: "Добавено в количката",
-      description: `${product.name} x${quantity} беше добавен в количката ви.`,
+      description: `${productName} x${quantity} беше добавен в количката ви.`,
     });
   };
 
   const handleBuyNow = () => {
     if (!product) return;
+    if (requiresSize && !selectedSize) {
+      toast({
+        title: "Изберете размер",
+        description: "Моля, изберете размер преди да купите продукта.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const productName = requiresSize ? `${product.name} (${selectedSize} см)` : product.name;
     addItem({
       productId: product.id,
-      name: product.name,
+      name: productName,
       price: Number(product.price),
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
@@ -245,23 +265,47 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Size Selection */}
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Размер:</label>
-              <Select value={selectedSize} onValueChange={setSelectedSize}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Изберете размер" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="XS">XS (14-15 см)</SelectItem>
-                  <SelectItem value="S">S (15-16 см)</SelectItem>
-                  <SelectItem value="M">M (16-17 см)</SelectItem>
-                  <SelectItem value="L">L (17-18 см)</SelectItem>
-                  <SelectItem value="XL">XL (18-19 см)</SelectItem>
-                  <SelectItem value="XXL">XXL (19-20 см)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Size Selection - Required for bracelets and necklaces */}
+            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces') && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">
+                  Размер: <span className="text-destructive">*</span>
+                </label>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger className={`w-full ${!selectedSize ? 'border-destructive/50' : ''}`}>
+                    <SelectValue placeholder="Изберете размер" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {product.subcategory === 'bracelets' ? (
+                      <>
+                        <SelectItem value="14">14 см</SelectItem>
+                        <SelectItem value="15">15 см</SelectItem>
+                        <SelectItem value="16">16 см</SelectItem>
+                        <SelectItem value="17">17 см</SelectItem>
+                        <SelectItem value="18">18 см</SelectItem>
+                        <SelectItem value="19">19 см</SelectItem>
+                        <SelectItem value="20">20 см</SelectItem>
+                        <SelectItem value="21">21 см</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="35">35 см</SelectItem>
+                        <SelectItem value="36">36 см</SelectItem>
+                        <SelectItem value="38">38 см</SelectItem>
+                        <SelectItem value="40">40 см</SelectItem>
+                        <SelectItem value="42">42 см</SelectItem>
+                        <SelectItem value="45">45 см</SelectItem>
+                        <SelectItem value="50">50 см</SelectItem>
+                        <SelectItem value="54">54 см</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                {!selectedSize && (
+                  <p className="text-xs text-destructive">Моля, изберете размер преди да добавите в количката</p>
+                )}
+              </div>
+            )}
 
             {/* Quantity & Actions */}
             <div className="space-y-4">
@@ -313,7 +357,7 @@ export default function ProductPage() {
                 <div className="flex items-start gap-3">
                   <Truck className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
                   <div>
-                    <p className="font-medium">Доставка със Spidy</p>
+                    <p className="font-medium">Доставка със Speedy</p>
                     <p className="text-sm text-muted-foreground">Безплатна доставка за поръчки над {FREE_SHIPPING_THRESHOLD_EUR} €</p>
                   </div>
                 </div>

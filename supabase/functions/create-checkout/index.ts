@@ -75,7 +75,7 @@ serve(async (req) => {
         price_data: {
           currency: "bgn",
           product_data: {
-            name: "Доставка (Speedy)",
+            name: "Доставка Speedy",
             images: [],
           },
           unit_amount: Math.round(shippingCost * 100),
