@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, Heart, Share2, Truck, CreditCard, Building2, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Heart, Share2, Truck, CreditCard, Building2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -375,14 +375,6 @@ export default function ProductPage() {
                   <div>
                     <p className="font-medium">Банков превод</p>
                     <p className="text-sm text-muted-foreground">Директен превод по сметка</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
-                  <div>
-                    <p className="font-medium">Капаро</p>
-                    <p className="text-sm text-muted-foreground">Възможност за авансово плащане 30% при поръчка</p>
                   </div>
                 </div>
               </div>
