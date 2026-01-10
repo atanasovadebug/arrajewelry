@@ -7,10 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut } from 'lucide-react';
+import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
+import { formatDualCurrency } from '@/lib/currency';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
@@ -43,15 +46,46 @@ interface Product {
   is_active: boolean | null;
 }
 
+interface Order {
+  id: string;
+  status: string;
+  payment_method: string;
+  subtotal: number;
+  shipping_cost: number;
+  total: number;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: {
+    city?: string;
+    address?: string;
+    postalCode?: string;
+  };
+  notes: string | null;
+  created_at: string;
+}
+
+interface OrderItem {
+  id: string;
+  product_name: string;
+  product_price: number;
+  quantity: number;
+}
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('products');
   
   // Form state
   const [name, setName] = useState('');
@@ -119,6 +153,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin) {
       fetchProducts();
+      fetchOrders();
     }
   }, [isAdmin]);
 
@@ -141,6 +176,90 @@ export default function AdminPage() {
       setProducts(data || []);
     }
     setLoading(false);
+  };
+
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Грешка при зареждане на поръчките');
+      console.error(error);
+    } else {
+      setOrders((data || []) as Order[]);
+    }
+    setOrdersLoading(false);
+  };
+
+  const fetchOrderItems = async (orderId: string) => {
+    const { data, error } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', orderId);
+
+    if (error) {
+      console.error(error);
+      return [];
+    }
+    return data as OrderItem[];
+  };
+
+  const viewOrderDetails = async (order: Order) => {
+    setSelectedOrder(order);
+    const items = await fetchOrderItems(order.id);
+    setOrderItems(items);
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
+
+    if (error) {
+      toast.error('Грешка при обновяване на статуса');
+      console.error(error);
+    } else {
+      toast.success('Статусът е обновен');
+      fetchOrders();
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'default';
+      case 'shipped':
+        return 'secondary';
+      case 'delivered':
+        return 'outline';
+      case 'pending':
+      default:
+        return 'destructive';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Изчаква';
+      case 'paid':
+        return 'Платена';
+      case 'shipped':
+        return 'Изпратена';
+      case 'delivered':
+        return 'Доставена';
+      case 'cancelled':
+        return 'Отказана';
+      default:
+        return status;
+    }
   };
 
   const resetForm = () => {
@@ -343,7 +462,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!isFormOpen && (
+            {activeTab === 'products' && !isFormOpen && (
               <Button onClick={openNewProductForm} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Добави продукт
@@ -355,6 +474,20 @@ export default function AdminPage() {
             </Button>
           </div>
         </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="products" className="gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              Продукти
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-2">
+              <Package className="h-4 w-4" />
+              Поръчки
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products" className="space-y-6">
 
         {isFormOpen ? (
           <Card className="mb-8">
@@ -613,6 +746,151 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="orders" className="space-y-6">
+            {selectedOrder ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Детайли на поръчка #{selectedOrder.id.slice(0, 8)}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Информация за клиента</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-muted-foreground">Име:</span> {selectedOrder.customer_name}</p>
+                        <p><span className="text-muted-foreground">Имейл:</span> {selectedOrder.customer_email}</p>
+                        <p><span className="text-muted-foreground">Телефон:</span> {selectedOrder.customer_phone}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Адрес за доставка (Speedy)</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-muted-foreground">Град:</span> {selectedOrder.shipping_address?.city}</p>
+                        <p><span className="text-muted-foreground">Адрес:</span> {selectedOrder.shipping_address?.address}</p>
+                        <p><span className="text-muted-foreground">Пощенски код:</span> {selectedOrder.shipping_address?.postalCode}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedOrder.notes && (
+                    <div className="space-y-2">
+                      <h3 className="font-medium">Бележки</h3>
+                      <p className="text-sm text-muted-foreground">{selectedOrder.notes}</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium">Продукти</h3>
+                    <div className="space-y-2">
+                      {orderItems.map((item) => (
+                        <div key={item.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                          <div>
+                            <p className="font-medium">{item.product_name}</p>
+                            <p className="text-sm text-muted-foreground">x{item.quantity}</p>
+                          </div>
+                          <p className="font-medium">{formatDualCurrency(item.product_price * item.quantity)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Междинна сума</span>
+                      <span>{formatDualCurrency(selectedOrder.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Доставка (Speedy)</span>
+                      <span>{selectedOrder.shipping_cost === 0 ? 'Безплатна' : formatDualCurrency(selectedOrder.shipping_cost)}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold pt-2 border-t">
+                      <span>Общо</span>
+                      <span>{formatDualCurrency(selectedOrder.total)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-4 border-t">
+                    <Label>Статус:</Label>
+                    <Select value={selectedOrder.status} onValueChange={(value) => updateOrderStatus(selectedOrder.id, value)}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Изчаква</SelectItem>
+                        <SelectItem value="paid">Платена</SelectItem>
+                        <SelectItem value="shipped">Изпратена</SelectItem>
+                        <SelectItem value="delivered">Доставена</SelectItem>
+                        <SelectItem value="cancelled">Отказана</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Поръчки ({orders.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {ordersLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Зареждане...</div>
+                  ) : orders.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Няма поръчки
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {orders.map((order) => (
+                        <div
+                          key={order.id}
+                          className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <span className="font-mono text-sm text-muted-foreground">
+                                  #{order.id.slice(0, 8)}
+                                </span>
+                                <Badge variant={getStatusBadgeVariant(order.status)}>
+                                  {getStatusLabel(order.status)}
+                                </Badge>
+                              </div>
+                              <p className="font-medium">{order.customer_name}</p>
+                              <p className="text-sm text-muted-foreground">{order.customer_email}</p>
+                            </div>
+                            <div className="text-right space-y-1">
+                              <p className="font-semibold">{formatDualCurrency(order.total)}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(order.created_at).toLocaleDateString('bg-BG', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
+                                <Eye className="h-4 w-4" />
+                                Детайли
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
