@@ -1,10 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders, handleCorsPrelight } from "../_shared/cors.ts";
 
 interface CartItem {
   productId: string;
@@ -31,14 +27,17 @@ interface CheckoutRequest {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResponse = handleCorsPrelight(req);
+  if (corsResponse) return corsResponse;
+  
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error("Stripe secret key not configured");
+      console.error("Stripe secret key not configured");
+      throw new Error("Payment service unavailable");
     }
 
     const stripe = new Stripe(stripeKey, {
@@ -49,7 +48,7 @@ serve(async (req) => {
     const { items, customerEmail, customerName, customerPhone, shippingAddress, notes, successUrl, cancelUrl } = body;
 
     if (!items || items.length === 0) {
-      throw new Error("No items in cart");
+      throw new Error("Cart is empty");
     }
 
     // Calculate shipping cost (free over 100 BGN)
@@ -116,9 +115,13 @@ serve(async (req) => {
     );
   } catch (error: unknown) {
     console.error("Stripe checkout error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
+    // Return sanitized error message
+    const rawMessage = error instanceof Error ? error.message : "";
+    const safeMessage = rawMessage.includes("Cart is empty") 
+      ? "Cart is empty" 
+      : "Checkout failed. Please try again.";
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: safeMessage }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
