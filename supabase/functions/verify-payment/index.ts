@@ -3,6 +3,14 @@ import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCorsHeaders, handleCorsPrelight } from "../_shared/cors.ts";
 import { validateCartItem } from "../_shared/validation.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "../_shared/rate-limit.ts";
+
+// Rate limit config: 10 verification attempts per minute per IP
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 10,
+  windowMs: 60000, // 1 minute
+  keyPrefix: "verify",
+};
 
 // Maximum field lengths for sanitization
 const MAX_NAME_LENGTH = 200;
@@ -31,6 +39,15 @@ serve(async (req) => {
   
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
+
+  // Check rate limit
+  const clientIP = getClientIP(req);
+  const rateLimitResult = checkRateLimit(clientIP, RATE_LIMIT_CONFIG);
+  
+  if (!rateLimitResult.allowed) {
+    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    return rateLimitResponse(rateLimitResult, corsHeaders);
+  }
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -168,7 +185,11 @@ serve(async (req) => {
         paymentStatus: session.payment_status 
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+        },
         status: 200,
       }
     );
