@@ -120,7 +120,9 @@ export default function AdminPage() {
         .maybeSingle();
 
       if (roleError) {
-        console.error('Error checking admin role:', roleError);
+        if (import.meta.env.DEV) {
+          console.error('Error checking admin role:', roleError);
+        }
         toast.error('Грешка при проверка на правата за достъп');
         navigate('/');
         return;
@@ -171,7 +173,9 @@ export default function AdminPage() {
 
     if (error) {
       toast.error('Грешка при зареждане на продуктите');
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
     } else {
       setProducts(data || []);
     }
@@ -187,7 +191,9 @@ export default function AdminPage() {
 
     if (error) {
       toast.error('Грешка при зареждане на поръчките');
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
     } else {
       setOrders((data || []) as Order[]);
     }
@@ -201,7 +207,9 @@ export default function AdminPage() {
       .eq('order_id', orderId);
 
     if (error) {
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
       return [];
     }
     return data as OrderItem[];
@@ -221,7 +229,9 @@ export default function AdminPage() {
 
     if (error) {
       toast.error('Грешка при обновяване на статуса');
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
     } else {
       toast.success('Статусът е обновен');
       fetchOrders();
@@ -326,7 +336,9 @@ export default function AdminPage() {
 
       if (uploadError) {
         toast.error(`Грешка при качване на ${file.name}`);
-        console.error(uploadError);
+        if (import.meta.env.DEV) {
+          console.error(uploadError);
+        }
         continue;
       }
 
@@ -396,7 +408,9 @@ export default function AdminPage() {
 
       if (error) {
         toast.error('Грешка при обновяване на продукта');
-        console.error(error);
+        if (import.meta.env.DEV) {
+          console.error(error);
+        }
       } else {
         toast.success('Продуктът е обновен успешно');
         resetForm();
@@ -408,7 +422,9 @@ export default function AdminPage() {
 
       if (error) {
         toast.error('Грешка при добавяне на продукта');
-        console.error(error);
+        if (import.meta.env.DEV) {
+          console.error(error);
+        }
       } else {
         toast.success('Продуктът е добавен успешно');
         resetForm();
@@ -425,7 +441,9 @@ export default function AdminPage() {
 
     if (error) {
       toast.error('Грешка при изтриване на продукта');
-      console.error(error);
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
     } else {
       toast.success('Продуктът е изтрит успешно');
       fetchProducts();
