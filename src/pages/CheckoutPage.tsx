@@ -99,6 +99,7 @@ export default function CheckoutPage() {
       // Bank transfer - create order directly
       const sessionId = localStorage.getItem("cart_session_id") || crypto.randomUUID();
 
+      // Only select the order ID to minimize PII exposure in the response
       const { data: order, error: orderError } = await supabase
         .from("orders")
         .insert({
@@ -118,7 +119,7 @@ export default function CheckoutPage() {
           },
           notes: formData.notes || null,
         })
-        .select()
+        .select("id")
         .single();
 
       if (orderError) throw orderError;
