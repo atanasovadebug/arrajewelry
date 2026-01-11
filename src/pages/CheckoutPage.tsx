@@ -141,7 +141,9 @@ export default function CheckoutPage() {
       toast.success("Поръчката е изпратена успешно!");
       navigate("/order-success", { state: { orderId: order.id } });
     } catch (error) {
-      console.error("Order error:", error);
+      if (import.meta.env.DEV) {
+        console.error("Order error:", error);
+      }
       toast.error("Грешка при изпращане на поръчката. Моля, опитайте отново.");
     } finally {
       setIsSubmitting(false);
