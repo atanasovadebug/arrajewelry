@@ -2,6 +2,27 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCorsHeaders, handleCorsPrelight } from "../_shared/cors.ts";
+import { validateCartItem } from "../_shared/validation.ts";
+
+// Maximum field lengths for sanitization
+const MAX_NAME_LENGTH = 200;
+const MAX_EMAIL_LENGTH = 255;
+const MAX_PHONE_LENGTH = 20;
+const MAX_ADDRESS_LENGTH = 300;
+const MAX_CITY_LENGTH = 100;
+const MAX_POSTAL_CODE_LENGTH = 10;
+const MAX_NOTES_LENGTH = 500;
+
+/**
+ * Sanitize a string by trimming and removing potentially dangerous characters
+ */
+function sanitizeString(input: string | undefined | null, maxLength: number): string {
+  if (!input) return "";
+  return input
+    .trim()
+    .replace(/[<>]/g, "") // Remove potential HTML tags
+    .substring(0, maxLength);
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -26,8 +47,41 @@ serve(async (req) => {
 
     const { sessionId, cartItems } = await req.json();
 
-    if (!sessionId) {
-      throw new Error("Missing session ID");
+    // Validate session ID format
+    if (!sessionId || typeof sessionId !== "string" || sessionId.length > 100) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Validate cart items if provided
+    if (cartItems) {
+      if (!Array.isArray(cartItems) || cartItems.length > 100) {
+        return new Response(
+          JSON.stringify({ error: "Invalid cart data" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+
+      for (const item of cartItems) {
+        const itemError = validateCartItem(item);
+        if (itemError) {
+          return new Response(
+            JSON.stringify({ error: "Invalid cart item data" }),
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 400,
+            }
+          );
+        }
+      }
     }
 
     // Retrieve the checkout session from Stripe
@@ -36,34 +90,49 @@ serve(async (req) => {
     });
 
     if (session.payment_status !== "paid") {
-      throw new Error("Payment not completed");
+      return new Response(
+        JSON.stringify({ error: "Payment not completed" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
     }
 
-    // Extract metadata
+    // Extract and sanitize metadata from Stripe session
     const metadata = session.metadata || {};
     const subtotal = parseFloat(metadata.subtotal || "0");
     const shippingCost = parseFloat(metadata.shippingCost || "0");
     const total = subtotal + shippingCost;
 
-    // Create order in database
+    // Sanitize all customer data before database insertion
+    const sanitizedCustomerName = sanitizeString(metadata.customerName, MAX_NAME_LENGTH);
+    const sanitizedCustomerEmail = sanitizeString(session.customer_email, MAX_EMAIL_LENGTH).toLowerCase();
+    const sanitizedCustomerPhone = sanitizeString(metadata.customerPhone, MAX_PHONE_LENGTH);
+    const sanitizedCity = sanitizeString(metadata.shippingCity, MAX_CITY_LENGTH);
+    const sanitizedAddress = sanitizeString(metadata.shippingAddress, MAX_ADDRESS_LENGTH);
+    const sanitizedPostalCode = sanitizeString(metadata.shippingPostalCode, MAX_POSTAL_CODE_LENGTH);
+    const sanitizedNotes = sanitizeString(metadata.notes, MAX_NOTES_LENGTH) || null;
+
+    // Create order in database with sanitized data
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
-        session_id: sessionId,
+        session_id: sessionId.substring(0, 100), // Limit session ID length
         status: "paid",
         payment_method: "card",
-        subtotal,
-        shipping_cost: shippingCost,
-        total,
-        customer_name: metadata.customerName || "",
-        customer_email: session.customer_email || "",
-        customer_phone: metadata.customerPhone || "",
+        subtotal: Math.max(0, Math.min(subtotal, 1000000)), // Reasonable bounds
+        shipping_cost: Math.max(0, Math.min(shippingCost, 1000)), // Reasonable bounds
+        total: Math.max(0, Math.min(total, 1001000)), // Reasonable bounds
+        customer_name: sanitizedCustomerName,
+        customer_email: sanitizedCustomerEmail,
+        customer_phone: sanitizedCustomerPhone,
         shipping_address: {
-          city: metadata.shippingCity || "",
-          address: metadata.shippingAddress || "",
-          postalCode: metadata.shippingPostalCode || "",
+          city: sanitizedCity,
+          address: sanitizedAddress,
+          postalCode: sanitizedPostalCode,
         },
-        notes: metadata.notes || null,
+        notes: sanitizedNotes,
       })
       .select()
       .single();
@@ -73,14 +142,14 @@ serve(async (req) => {
       throw new Error("Failed to create order");
     }
 
-    // Create order items
+    // Create order items with sanitized data
     if (cartItems && cartItems.length > 0) {
-      const orderItems = cartItems.map((item: any) => ({
+      const orderItems = cartItems.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
         order_id: order.id,
-        product_id: item.productId,
-        product_name: item.name,
-        product_price: item.price,
-        quantity: item.quantity,
+        product_id: item.productId.substring(0, 100),
+        product_name: sanitizeString(item.name, 200),
+        product_price: Math.max(0, Math.min(item.price, 100000)),
+        quantity: Math.max(1, Math.min(Math.floor(item.quantity), 100)),
       }));
 
       const { error: itemsError } = await supabase
@@ -106,15 +175,8 @@ serve(async (req) => {
   } catch (error: unknown) {
     console.error("Payment verification error:", error);
     // Return sanitized error message
-    const rawMessage = error instanceof Error ? error.message : "";
-    let safeMessage = "Payment verification failed. Please contact support.";
-    if (rawMessage.includes("Payment not completed")) {
-      safeMessage = "Payment not completed";
-    } else if (rawMessage.includes("Missing session ID")) {
-      safeMessage = "Invalid request";
-    }
     return new Response(
-      JSON.stringify({ error: safeMessage }),
+      JSON.stringify({ error: "Payment verification failed. Please contact support." }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 400,
