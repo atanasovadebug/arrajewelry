@@ -2,6 +2,14 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { getCorsHeaders, handleCorsPrelight } from "../_shared/cors.ts";
 import { validateCheckoutData, validateCartItem, validateUrl } from "../_shared/validation.ts";
+import { checkRateLimit, getClientIP, rateLimitResponse } from "../_shared/rate-limit.ts";
+
+// Rate limit config: 5 checkout attempts per minute per IP
+const RATE_LIMIT_CONFIG = {
+  maxRequests: 5,
+  windowMs: 60000, // 1 minute
+  keyPrefix: "checkout",
+};
 
 interface CartItem {
   productId: string;
@@ -33,6 +41,15 @@ serve(async (req) => {
   
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
+
+  // Check rate limit
+  const clientIP = getClientIP(req);
+  const rateLimitResult = checkRateLimit(clientIP, RATE_LIMIT_CONFIG);
+  
+  if (!rateLimitResult.allowed) {
+    console.log(`Rate limit exceeded for IP: ${clientIP}`);
+    return rateLimitResponse(rateLimitResult, corsHeaders);
+  }
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -166,7 +183,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ url: session.url, sessionId: session.id }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "application/json",
+          "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+        },
         status: 200,
       }
     );
