@@ -20,9 +20,9 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
 const categories = [
   { value: 'handmade', label: 'Ръчно изработени бижута' },
-  { value: 'steel', label: 'Неръждаема стомана' },
+  { value: 'stainless-steel', label: 'Неръждаема стомана' },
   { value: 'silver', label: 'Сребро' },
-  { value: 'moissanite', label: 'Моасанит' },
+  { value: 'moissanite', label: 'Мойсанит' },
 ];
 
 const subcategories = [
