@@ -36,3 +36,18 @@ export function formatBGN(priceInBGN: number): string {
  */
 export const FREE_SHIPPING_THRESHOLD_EUR = 100;
 export const FREE_SHIPPING_THRESHOLD_BGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
+
+/**
+ * Shipping costs in BGN
+ * Standard delivery: 5 лв. (~2.56 €)
+ * Speedy Automat: 3 лв. (~1.53 €)
+ */
+export const SHIPPING_COST_STANDARD_BGN = 5;
+export const SHIPPING_COST_AUTOMAT_BGN = 3;
+export const SHIPPING_COST_STANDARD_EUR = SHIPPING_COST_STANDARD_BGN / EUR_TO_BGN_RATE;
+export const SHIPPING_COST_AUTOMAT_EUR = SHIPPING_COST_AUTOMAT_BGN / EUR_TO_BGN_RATE;
+
+/**
+ * Shipping time info
+ */
+export const SHIPPING_TIME_INFO = "Изпращане от 1-2 работни дни";
