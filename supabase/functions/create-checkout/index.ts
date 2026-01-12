@@ -126,41 +126,45 @@ serve(async (req) => {
 
     const sanitized = validation.sanitized;
 
-    // EUR to BGN rate
+    // EUR to BGN rate (fixed rate)
     const EUR_TO_BGN_RATE = 1.9558;
-    const FREE_SHIPPING_THRESHOLD_BGN = 100 * EUR_TO_BGN_RATE; // 100 EUR in BGN
+    const FREE_SHIPPING_THRESHOLD_EUR = 100;
     const SHIPPING_COST_STANDARD_BGN = 5;
     const SHIPPING_COST_AUTOMAT_BGN = 3;
     
-    // Calculate shipping cost (free over 100 EUR / 195.58 BGN)
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const baseShippingCost = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : SHIPPING_COST_STANDARD_BGN;
-    const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : baseShippingCost;
+    // Calculate totals in BGN first
+    const subtotalBGN = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const freeShippingThresholdBGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
+    const baseShippingCostBGN = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : SHIPPING_COST_STANDARD_BGN;
+    const shippingCostBGN = subtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
     const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : "Доставка Speedy";
 
-    // Create line items for Stripe (sanitize product names)
+    // Convert BGN prices to EUR for Stripe (BGN is no longer supported)
+    const toEurCents = (bgnAmount: number) => Math.round((bgnAmount / EUR_TO_BGN_RATE) * 100);
+
+    // Create line items for Stripe in EUR (sanitize product names)
     const lineItems = items.map((item) => ({
       price_data: {
-        currency: "bgn",
+        currency: "eur",
         product_data: {
           name: item.name.substring(0, 200).replace(/[<>]/g, ""),
           images: item.image ? [item.image] : [],
         },
-        unit_amount: Math.round(item.price * 100), // Stripe uses cents
+        unit_amount: toEurCents(item.price), // Convert BGN to EUR cents
       },
       quantity: item.quantity,
     }));
 
     // Add shipping as a line item if not free
-    if (shippingCost > 0) {
+    if (shippingCostBGN > 0) {
       lineItems.push({
         price_data: {
-          currency: "bgn",
+          currency: "eur",
           product_data: {
             name: shippingLabel,
             images: [],
           },
-          unit_amount: Math.round(shippingCost * 100),
+          unit_amount: toEurCents(shippingCostBGN),
         },
         quantity: 1,
       });
@@ -181,8 +185,8 @@ serve(async (req) => {
         shippingAddress: sanitized.shippingAddress.address,
         shippingPostalCode: sanitized.shippingAddress.postalCode,
         notes: sanitized.notes || "",
-        subtotal: subtotal.toString(),
-        shippingCost: shippingCost.toString(),
+        subtotalBGN: subtotalBGN.toString(),
+        shippingCostBGN: shippingCostBGN.toString(),
       },
       shipping_address_collection: {
         allowed_countries: ["BG"],

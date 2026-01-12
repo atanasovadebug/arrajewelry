@@ -9,31 +9,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, Building2, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
+import { CreditCard, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_STANDARD_BGN, SHIPPING_COST_AUTOMAT_BGN } from "@/lib/currency";
 import type { ShippingMethod } from "@/contexts/CartContext";
 
-const paymentMethods = [
-  {
-    id: "card",
-    name: "Дебитна/Кредитна карта",
-    description: "Онлайн плащане с карта",
-    icon: CreditCard,
-  },
-  {
-    id: "bank",
-    name: "Банков превод",
-    description: "Превод по банкова сметка",
-    icon: Building2,
-  },
-];
 
 export default function CheckoutPage() {
   const { items, subtotal, shippingCost, total, clearCart, shippingMethod, setShippingMethod } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,90 +45,41 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // If card payment, redirect to Stripe
-      if (paymentMethod === "card") {
-        const { data, error } = await supabase.functions.invoke("create-checkout", {
-          body: {
-            items: items.map((item) => ({
-              productId: item.productId,
-              name: item.name,
-              price: item.price,
-              quantity: item.quantity,
-              image: item.image,
-            })),
-            customerEmail: formData.email,
-            customerName: formData.name,
-            customerPhone: formData.phone,
-            shippingAddress: {
-              city: formData.city,
-              address: formData.address,
-              postalCode: formData.postalCode,
-            },
-            shippingMethod: shippingMethod,
-            notes: formData.notes,
-            successUrl: `${window.location.origin}/order-success`,
-            cancelUrl: `${window.location.origin}/checkout`,
-          },
-        });
-
-        if (error) throw new Error(error.message);
-        
-        if (data?.url) {
-          // Store cart items in sessionStorage for order creation after payment
-          sessionStorage.setItem("pending_cart_items", JSON.stringify(items));
-          // Redirect to Stripe Checkout
-          window.location.href = data.url;
-          return;
-        } else {
-          throw new Error("Failed to create checkout session");
-        }
-      }
-
-      // Bank transfer - create order directly
-      const sessionId = localStorage.getItem("cart_session_id") || crypto.randomUUID();
-
-      // Only select the order ID to minimize PII exposure in the response
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          session_id: sessionId,
-          status: "pending",
-          payment_method: paymentMethod,
-          subtotal,
-          shipping_cost: shippingCost,
-          total,
-          customer_name: formData.name,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          shipping_address: {
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: {
+          items: items.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          customerEmail: formData.email,
+          customerName: formData.name,
+          customerPhone: formData.phone,
+          shippingAddress: {
             city: formData.city,
             address: formData.address,
             postalCode: formData.postalCode,
           },
-          notes: formData.notes || null,
-        })
-        .select("id")
-        .single();
+          shippingMethod: shippingMethod,
+          notes: formData.notes,
+          successUrl: `${window.location.origin}/order-success`,
+          cancelUrl: `${window.location.origin}/checkout`,
+        },
+      });
 
-      if (orderError) throw orderError;
-
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.productId,
-        product_name: item.name,
-        product_price: item.price,
-        quantity: item.quantity,
-      }));
-
-      const { error: itemsError } = await supabase
-        .from("order_items")
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      clearCart();
-      toast.success("Поръчката е изпратена успешно!");
-      navigate("/order-success", { state: { orderId: order.id } });
+      if (error) throw new Error(error.message);
+      
+      if (data?.url) {
+        // Store cart items in sessionStorage for order creation after payment
+        sessionStorage.setItem("pending_cart_items", JSON.stringify(items));
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+        return;
+      } else {
+        throw new Error("Failed to create checkout session");
+      }
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error("Order error:", error);
@@ -359,27 +296,13 @@ export default function CheckoutPage() {
                 className="bg-card border rounded-lg p-6"
               >
                 <h2 className="font-heading text-lg font-semibold mb-4">Метод на плащане</h2>
-                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                  <div className="space-y-3">
-                    {paymentMethods.map((method) => (
-                      <label
-                        key={method.id}
-                        className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-                          paymentMethod === method.id
-                            ? "border-primary bg-primary/5"
-                            : "hover:border-muted-foreground/50"
-                        }`}
-                      >
-                        <RadioGroupItem value={method.id} />
-                        <method.icon className="h-5 w-5 text-muted-foreground" />
-                        <div>
-                          <p className="font-medium">{method.name}</p>
-                          <p className="text-sm text-muted-foreground">{method.description}</p>
-                        </div>
-                      </label>
-                    ))}
+                <div className="flex items-center gap-4 p-4 border rounded-lg border-primary bg-primary/5">
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Дебитна/Кредитна карта</p>
+                    <p className="text-sm text-muted-foreground">Онлайн плащане с карта</p>
                   </div>
-                </RadioGroup>
+                </div>
               </motion.div>
             </div>
 
