@@ -11,7 +11,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, Building2, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
-import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_STANDARD_BGN, SHIPPING_COST_AUTOMAT_BGN } from "@/lib/currency";
+import type { ShippingMethod } from "@/contexts/CartContext";
 
 const paymentMethods = [
   {
@@ -29,7 +30,7 @@ const paymentMethods = [
 ];
 
 export default function CheckoutPage() {
-  const { items, subtotal, shippingCost, total, clearCart } = useCart();
+  const { items, subtotal, shippingCost, total, clearCart, shippingMethod, setShippingMethod } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
@@ -77,6 +78,7 @@ export default function CheckoutPage() {
               address: formData.address,
               postalCode: formData.postalCode,
             },
+            shippingMethod: shippingMethod,
             notes: formData.notes,
             successUrl: `${window.location.origin}/order-success`,
             cancelUrl: `${window.location.origin}/checkout`,
@@ -242,6 +244,62 @@ export default function CheckoutPage() {
                   <Truck className="h-5 w-5 text-primary" />
                   <h2 className="font-heading text-lg font-semibold">Адрес за доставка</h2>
                 </div>
+                
+                {/* Shipping Method Selection */}
+                <div className="mb-6">
+                  <Label className="text-sm font-medium mb-3 block">Метод на доставка</Label>
+                  <RadioGroup 
+                    value={shippingMethod} 
+                    onValueChange={(value) => setShippingMethod(value as ShippingMethod)}
+                    className="space-y-2"
+                  >
+                    <label
+                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                        shippingMethod === "standard"
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="standard" />
+                        <div>
+                          <p className="font-medium text-sm">Доставка до адрес (Speedy)</p>
+                          <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO}</p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-sm">
+                        {subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? (
+                          <span className="text-green-600">Безплатна</span>
+                        ) : (
+                          formatDualCurrency(SHIPPING_COST_STANDARD_BGN)
+                        )}
+                      </span>
+                    </label>
+                    <label
+                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                        shippingMethod === "automat"
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="automat" />
+                        <div>
+                          <p className="font-medium text-sm">Speedy Автомат</p>
+                          <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO}</p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-sm">
+                        {subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? (
+                          <span className="text-green-600">Безплатна</span>
+                        ) : (
+                          formatDualCurrency(SHIPPING_COST_AUTOMAT_BGN)
+                        )}
+                      </span>
+                    </label>
+                  </RadioGroup>
+                </div>
+                
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="city">Град *</Label>
@@ -266,14 +324,16 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="address">Адрес *</Label>
+                    <Label htmlFor="address">
+                      {shippingMethod === "automat" ? "Адрес на автомат *" : "Адрес *"}
+                    </Label>
                     <Input
                       id="address"
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
                       required
-                      placeholder="Улица, номер, вход, етаж, апартамент"
+                      placeholder={shippingMethod === "automat" ? "Номер на Speedy автомат" : "Улица, номер, вход, етаж, апартамент"}
                       className="mt-1"
                     />
                   </div>
@@ -358,7 +418,9 @@ export default function CheckoutPage() {
                     <span>{formatDualCurrency(subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Доставка (Speedy)</span>
+                    <span className="text-muted-foreground">
+                      Доставка ({shippingMethod === "automat" ? "Speedy Автомат" : "Speedy"})
+                    </span>
                     <span>
                       {shippingCost === 0 ? (
                         <span className="text-green-600">Безплатна</span>
@@ -369,9 +431,10 @@ export default function CheckoutPage() {
                   </div>
                   {shippingCost > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} €
+                      Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} € / {FREE_SHIPPING_THRESHOLD_BGN.toFixed(2)} лв.
                     </p>
                   )}
+                  <p className="text-xs text-primary font-medium">{SHIPPING_TIME_INFO}</p>
                   <div className="flex justify-between font-semibold pt-2 border-t">
                     <span>Общо</span>
                     <span>{formatDualCurrency(total)}</span>

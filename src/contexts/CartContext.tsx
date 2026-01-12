@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { FREE_SHIPPING_THRESHOLD_BGN, EUR_TO_BGN_RATE } from "@/lib/currency";
+import { FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_COST_STANDARD_BGN, SHIPPING_COST_AUTOMAT_BGN } from "@/lib/currency";
 
 export interface CartItem {
   id: string;
@@ -11,6 +11,8 @@ export interface CartItem {
   quantity: number;
 }
 
+export type ShippingMethod = "standard" | "automat";
+
 interface CartContextType {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "id">) => void;
@@ -20,13 +22,12 @@ interface CartContextType {
   itemCount: number;
   subtotal: number;
   shippingCost: number;
+  shippingMethod: ShippingMethod;
+  setShippingMethod: (method: ShippingMethod) => void;
   total: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-
-// Shipping cost in BGN (approximately 6 EUR)
-const SHIPPING_COST_BGN = 6 * EUR_TO_BGN_RATE;
 
 function getSessionId(): string {
   let sessionId = localStorage.getItem("cart_session_id");
@@ -39,6 +40,7 @@ function getSessionId(): string {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>("standard");
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -88,7 +90,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : SHIPPING_COST_BGN;
+  const baseShippingCost = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : SHIPPING_COST_STANDARD_BGN;
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : baseShippingCost;
   const total = subtotal + shippingCost;
 
   return (
@@ -102,6 +105,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         itemCount,
         subtotal,
         shippingCost,
+        shippingMethod,
+        setShippingMethod,
         total,
       }}
     >

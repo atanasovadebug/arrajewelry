@@ -29,6 +29,7 @@ interface CheckoutRequest {
     address: string;
     postalCode: string;
   };
+  shippingMethod?: "standard" | "automat";
   notes?: string;
   successUrl: string;
   cancelUrl: string;
@@ -63,7 +64,7 @@ serve(async (req) => {
     });
 
     const body: CheckoutRequest = await req.json();
-    const { items, customerEmail, customerName, customerPhone, shippingAddress, notes, successUrl, cancelUrl } = body;
+    const { items, customerEmail, customerName, customerPhone, shippingAddress, shippingMethod, notes, successUrl, cancelUrl } = body;
 
     // Validate URLs
     if (!successUrl || !cancelUrl || !validateUrl(successUrl) || !validateUrl(cancelUrl)) {
@@ -125,9 +126,17 @@ serve(async (req) => {
 
     const sanitized = validation.sanitized;
 
-    // Calculate shipping cost (free over 100 BGN)
+    // EUR to BGN rate
+    const EUR_TO_BGN_RATE = 1.9558;
+    const FREE_SHIPPING_THRESHOLD_BGN = 100 * EUR_TO_BGN_RATE; // 100 EUR in BGN
+    const SHIPPING_COST_STANDARD_BGN = 5;
+    const SHIPPING_COST_AUTOMAT_BGN = 3;
+    
+    // Calculate shipping cost (free over 100 EUR / 195.58 BGN)
     const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    const shippingCost = subtotal >= 100 ? 0 : 6.99;
+    const baseShippingCost = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : SHIPPING_COST_STANDARD_BGN;
+    const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : baseShippingCost;
+    const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : "Доставка Speedy";
 
     // Create line items for Stripe (sanitize product names)
     const lineItems = items.map((item) => ({
@@ -148,7 +157,7 @@ serve(async (req) => {
         price_data: {
           currency: "bgn",
           product_data: {
-            name: "Доставка Speedy",
+            name: shippingLabel,
             images: [],
           },
           unit_amount: Math.round(shippingCost * 100),

@@ -4,7 +4,7 @@ import { ShoppingBag, Minus, Plus, Trash2, X } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO } from "@/lib/currency";
 
 export function CartDrawer() {
   const { items, itemCount, subtotal, shippingCost, total, updateQuantity, removeItem } = useCart();
@@ -93,9 +93,10 @@ export function CartDrawer() {
               </div>
               {shippingCost > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} €
+                  Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} € / {FREE_SHIPPING_THRESHOLD_BGN.toFixed(2)} лв.
                 </p>
               )}
+              <p className="text-xs text-primary font-medium">{SHIPPING_TIME_INFO}</p>
               <div className="flex justify-between font-semibold pt-2 border-t">
                 <span>Общо</span>
                 <span>{formatDualCurrency(total)}</span>
