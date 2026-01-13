@@ -148,7 +148,9 @@ serve(async (req) => {
         currency: "eur",
         product_data: {
           name: item.name.substring(0, 200).replace(/[<>]/g, ""),
-          images: item.image ? [item.image] : [],
+          // Stripe requires absolute, publicly accessible URLs.
+          // Our UI can use relative paths (e.g. /placeholder.svg), so we only pass valid URLs.
+          images: item.image && validateUrl(item.image) ? [item.image] : [],
         },
         unit_amount: toEurCents(item.price), // Convert BGN to EUR cents
       },

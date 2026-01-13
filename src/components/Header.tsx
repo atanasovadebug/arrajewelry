@@ -91,6 +91,13 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ))}
+
+            <Link
+              to="/contact"
+              className="bg-transparent font-body text-sm font-medium px-4 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Контакти
+            </Link>
           </nav>
 
           {/* Cart, Social & Mobile Menu */}
@@ -126,6 +133,14 @@ export function Header() {
             className="md:hidden bg-background border-b border-border overflow-hidden"
           >
             <nav className="container mx-auto px-4 py-4">
+              <Link
+                to="/contact"
+                className="block py-3 font-body font-medium border-b border-border"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Контакти
+              </Link>
+
               {categories.map((category) => (
                 <div key={category.name} className="border-b border-border last:border-0">
                   <button
