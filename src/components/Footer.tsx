@@ -72,7 +72,22 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border text-center">
+        <div className="mt-12 pt-8 border-t border-border text-center space-y-4">
+          <nav aria-label="Информация" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Общи условия
+            </Link>
+            <Link to="/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Политика за поверителност
+            </Link>
+            <Link to="/shipping-returns" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Доставка и връщане
+            </Link>
+            <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              Контакти
+            </Link>
+          </nav>
+
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} Arra Jewelry. Всички права запазени.
           </p>

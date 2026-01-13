@@ -30,15 +30,48 @@ export default function CheckoutPage() {
     notes: "",
   });
 
+  const sanitizePhoneInput = (value: string) => {
+    // allow only digits and a single leading +
+    const cleaned = value.replace(/[^0-9+]/g, "");
+    if (!cleaned.includes("+")) return cleaned;
+    return cleaned.startsWith("+")
+      ? "+" + cleaned.slice(1).replace(/\+/g, "")
+      : cleaned.replace(/\+/g, "");
+  };
+
+  const isValidBulgarianPhone = (value: string) => {
+    const v = value.replace(/\s+/g, "");
+
+    // 0XXXXXXXXX (10 digits) e.g. 0896892555
+    if (/^0\d{9}$/.test(v)) return true;
+
+    // +359XXXXXXXXX (13 chars, + + 12 digits) e.g. +359896892555
+    if (/^\+359\d{9}$/.test(v)) return true;
+
+    // 359XXXXXXXXX (12 digits) e.g. 359896892555
+    if (/^359\d{9}$/.test(v)) return true;
+
+    return false;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "phone" ? sanitizePhoneInput(value) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (items.length === 0) {
       toast.error("Количката ви е празна");
+      return;
+    }
+
+    if (!isValidBulgarianPhone(formData.phone)) {
+      toast.error("Моля, въведете валиден телефон (0896892555 или +359896892555)");
       return;
     }
 
@@ -161,11 +194,17 @@ export default function CheckoutPage() {
                       id="phone"
                       name="phone"
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="0896892555 или +359896892555"
                       value={formData.phone}
                       onChange={handleChange}
                       required
                       className="mt-1"
                     />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Приемаме формат 0896892555 или +359896892555.
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -300,7 +339,9 @@ export default function CheckoutPage() {
                   <CreditCard className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="font-medium">Дебитна/Кредитна карта</p>
-                    <p className="text-sm text-muted-foreground">Онлайн плащане с карта</p>
+                    <p className="text-sm text-muted-foreground">
+                      След "Завърши поръчката" ще бъдете пренасочени към защитена страница за въвеждане на картови данни.
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -374,7 +415,11 @@ export default function CheckoutPage() {
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center mt-4">
-                  С поръчката се съгласявате с общите условия
+                  С поръчката се съгласявате с{' '}
+                  <Link to="/terms" className="underline underline-offset-2 hover:text-foreground">
+                    общите условия
+                  </Link>
+                  .
                 </p>
               </div>
             </motion.div>
