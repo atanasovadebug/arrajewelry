@@ -29,6 +29,15 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("");
+
+  // Material type labels
+  const typeLabels: Record<string, string> = {
+    'silver': 'Сребро',
+    'gold': 'Злато',
+    'rose-gold': 'Розово злато',
+    'white-gold': 'Бяло злато',
+  };
 
   const { data: product, isLoading, error } = useQuery({
     queryKey: ["product", productId],
@@ -50,12 +59,24 @@ export default function ProductPage() {
   const hasAvailableSizes = Array.isArray(specs?.available_sizes) && (specs?.available_sizes as string[]).length > 0;
   const requiresSize = hasAvailableSizes && (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
 
+  // Check if product has available types defined
+  const hasAvailableTypes = Array.isArray(specs?.available_types) && (specs?.available_types as string[]).length > 0;
+  const requiresType = hasAvailableTypes && (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+
   const handleAddToCart = () => {
     if (!product) return;
     if (requiresSize && !selectedSize) {
       toast({
         title: "Изберете размер",
         description: "Моля, изберете размер преди да добавите продукта в количката.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (requiresType && !selectedType) {
+      toast({
+        title: "Изберете вид",
+        description: "Моля, изберете вид преди да добавите продукта в количката.",
         variant: "destructive",
       });
       return;
@@ -86,9 +107,18 @@ export default function ProductPage() {
       });
       return;
     }
-    const productName = requiresSize && selectedSize 
-      ? `${product.name} (${product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`})` 
-      : product.name;
+    // Build product name with size and type
+    let productName = product.name;
+    const extras: string[] = [];
+    if (requiresSize && selectedSize) {
+      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
+    }
+    if (requiresType && selectedType) {
+      extras.push(typeLabels[selectedType] || selectedType);
+    }
+    if (extras.length > 0) {
+      productName = `${product.name} (${extras.join(', ')})`;
+    }
     addItem({
       productId: product.id,
       name: productName,
@@ -143,8 +173,9 @@ export default function ProductPage() {
   const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const specifications = product.specifications as Record<string, unknown> | null;
   const availableSizes = specifications?.available_sizes as string[] | undefined;
+  const availableTypes = specifications?.available_types as string[] | undefined;
   const displaySpecs = specifications 
-    ? Object.fromEntries(Object.entries(specifications).filter(([k]) => k !== 'available_sizes'))
+    ? Object.fromEntries(Object.entries(specifications).filter(([k]) => k !== 'available_sizes' && k !== 'available_types'))
     : null;
   const inStock = product.stock > 0;
 
@@ -296,6 +327,30 @@ export default function ProductPage() {
                 </Select>
                 {!selectedSize && (
                   <p className="text-xs text-destructive">Моля, изберете размер преди да добавите в количката</p>
+                )}
+              </div>
+            )}
+
+            {/* Type/Material Selection - Required for bracelets, necklaces, and rings with available types */}
+            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces' || product.subcategory === 'rings') && availableTypes && availableTypes.length > 0 && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">
+                  Вид: <span className="text-destructive">*</span>
+                </label>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className={`w-full ${!selectedType ? 'border-destructive/50' : ''}`}>
+                    <SelectValue placeholder="Изберете вид" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {typeLabels[type] || type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!selectedType && (
+                  <p className="text-xs text-destructive">Моля, изберете вид преди да добавите в количката</p>
                 )}
               </div>
             )}
