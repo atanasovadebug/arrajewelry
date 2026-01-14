@@ -98,6 +98,7 @@ export default function AdminPage() {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
+  const [availableSizes, setAvailableSizes] = useState('');
 
   // Check authentication and admin role
   useEffect(() => {
@@ -282,6 +283,7 @@ export default function AdminPage() {
     setStock('0');
     setImages([]);
     setSpecifications([]);
+    setAvailableSizes('');
     setEditingProduct(null);
   };
 
@@ -301,8 +303,13 @@ export default function AdminPage() {
     setStock(product.stock.toString());
     setImages(product.images || []);
     const specs = product.specifications as Record<string, unknown> | null;
+    // Extract available_sizes from specs if present
+    const sizesFromSpecs = specs?.available_sizes;
+    setAvailableSizes(Array.isArray(sizesFromSpecs) ? sizesFromSpecs.join(', ') : '');
     setSpecifications(
-      Object.entries(specs || {}).map(([key, value]) => ({ key, value: String(value) }))
+      Object.entries(specs || {})
+        .filter(([key]) => key !== 'available_sizes')
+        .map(([key, value]) => ({ key, value: String(value) }))
     );
     setIsFormOpen(true);
   };
@@ -385,7 +392,12 @@ export default function AdminPage() {
     const specsObject = specifications.reduce((acc, { key, value }) => {
       if (key && value) acc[key] = value;
       return acc;
-    }, {} as Record<string, string>);
+    }, {} as Record<string, string | string[]>);
+
+    // Add available sizes to specs
+    if (availableSizes.trim()) {
+      specsObject.available_sizes = availableSizes.split(',').map(s => s.trim()).filter(Boolean);
+    }
 
     const productData = {
       name: name.trim(),
@@ -587,6 +599,19 @@ export default function AdminPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="availableSizes">Налични размери</Label>
+                    <Input
+                      id="availableSizes"
+                      value={availableSizes}
+                      onChange={(e) => setAvailableSizes(e.target.value)}
+                      placeholder="14, 15, 16, 17, 18 (разделени със запетая)"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Въведете размерите разделени със запетая (напр. 14, 15, 16, 17, 18)
+                    </p>
                   </div>
 
                   <div className="space-y-2">

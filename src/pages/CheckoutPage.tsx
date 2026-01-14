@@ -196,15 +196,11 @@ export default function CheckoutPage() {
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
-                      placeholder="0896892555 или +359896892555"
                       value={formData.phone}
                       onChange={handleChange}
                       required
                       className="mt-1"
                     />
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Приемаме формат 0896892555 или +359896892555.
-                    </p>
                   </div>
                 </div>
               </motion.div>

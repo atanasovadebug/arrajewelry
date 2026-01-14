@@ -45,7 +45,10 @@ export default function ProductPage() {
     enabled: !!productId,
   });
 
-  const requiresSize = product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces';
+  // Check if product has available sizes defined (will be properly evaluated after product loads)
+  const specs = product?.specifications as Record<string, unknown> | null;
+  const hasAvailableSizes = Array.isArray(specs?.available_sizes) && (specs?.available_sizes as string[]).length > 0;
+  const requiresSize = hasAvailableSizes && (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -57,7 +60,9 @@ export default function ProductPage() {
       });
       return;
     }
-    const productName = requiresSize ? `${product.name} (${selectedSize} см)` : product.name;
+    const productName = requiresSize && selectedSize 
+      ? `${product.name} (${product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`})` 
+      : product.name;
     addItem({
       productId: product.id,
       name: productName,
@@ -81,7 +86,9 @@ export default function ProductPage() {
       });
       return;
     }
-    const productName = requiresSize ? `${product.name} (${selectedSize} см)` : product.name;
+    const productName = requiresSize && selectedSize 
+      ? `${product.name} (${product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`})` 
+      : product.name;
     addItem({
       productId: product.id,
       name: productName,
@@ -134,7 +141,11 @@ export default function ProductPage() {
   }
 
   const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
-  const specifications = product.specifications as Record<string, string> | null;
+  const specifications = product.specifications as Record<string, unknown> | null;
+  const availableSizes = specifications?.available_sizes as string[] | undefined;
+  const displaySpecs = specifications 
+    ? Object.fromEntries(Object.entries(specifications).filter(([k]) => k !== 'available_sizes'))
+    : null;
   const inStock = product.stock > 0;
 
   return (
@@ -254,19 +265,19 @@ export default function ProductPage() {
             )}
 
             {/* Product Specifications */}
-            {specifications && Object.keys(specifications).length > 0 && (
+            {displaySpecs && Object.keys(displaySpecs).length > 0 && (
               <div className="grid grid-cols-2 gap-4 bg-secondary/30 p-5 rounded-sm">
-                {Object.entries(specifications).map(([key, value]) => (
+                {Object.entries(displaySpecs).map(([key, value]) => (
                   <div key={key}>
                     <span className="text-sm text-muted-foreground">{key}</span>
-                    <p className="font-medium">{value}</p>
+                    <p className="font-medium">{String(value)}</p>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Size Selection - Required for bracelets and necklaces */}
-            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces') && (
+            {/* Size Selection - Required for bracelets, necklaces, and rings with available sizes */}
+            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces' || product.subcategory === 'rings') && availableSizes && availableSizes.length > 0 && (
               <div className="space-y-3">
                 <label className="text-sm font-medium">
                   Размер: <span className="text-destructive">*</span>
@@ -276,29 +287,11 @@ export default function ProductPage() {
                     <SelectValue placeholder="Изберете размер" />
                   </SelectTrigger>
                   <SelectContent>
-                    {product.subcategory === 'bracelets' ? (
-                      <>
-                        <SelectItem value="14">14 см</SelectItem>
-                        <SelectItem value="15">15 см</SelectItem>
-                        <SelectItem value="16">16 см</SelectItem>
-                        <SelectItem value="17">17 см</SelectItem>
-                        <SelectItem value="18">18 см</SelectItem>
-                        <SelectItem value="19">19 см</SelectItem>
-                        <SelectItem value="20">20 см</SelectItem>
-                        <SelectItem value="21">21 см</SelectItem>
-                      </>
-                    ) : (
-                      <>
-                        <SelectItem value="35">35 см</SelectItem>
-                        <SelectItem value="36">36 см</SelectItem>
-                        <SelectItem value="38">38 см</SelectItem>
-                        <SelectItem value="40">40 см</SelectItem>
-                        <SelectItem value="42">42 см</SelectItem>
-                        <SelectItem value="45">45 см</SelectItem>
-                        <SelectItem value="50">50 см</SelectItem>
-                        <SelectItem value="54">54 см</SelectItem>
-                      </>
-                    )}
+                    {availableSizes.map((size) => (
+                      <SelectItem key={size} value={size}>
+                        {product.subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {!selectedSize && (
