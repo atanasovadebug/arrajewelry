@@ -98,7 +98,18 @@ export default function AdminPage() {
   const [images, setImages] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
-  const [availableSizes, setAvailableSizes] = useState('');
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  // Predefined size options
+  const sizeOptions = ['14', '15', '16', '17', '18', '19', '20', '21', '22'];
+  // Predefined material type options
+  const typeOptions = [
+    { value: 'silver', label: 'Сребро' },
+    { value: 'gold', label: 'Злато' },
+    { value: 'rose-gold', label: 'Розово злато' },
+    { value: 'white-gold', label: 'Бяло злато' },
+  ];
 
   // Check authentication and admin role
   useEffect(() => {
@@ -283,7 +294,8 @@ export default function AdminPage() {
     setStock('0');
     setImages([]);
     setSpecifications([]);
-    setAvailableSizes('');
+    setSelectedSizes([]);
+    setSelectedTypes([]);
     setEditingProduct(null);
   };
 
@@ -303,12 +315,14 @@ export default function AdminPage() {
     setStock(product.stock.toString());
     setImages(product.images || []);
     const specs = product.specifications as Record<string, unknown> | null;
-    // Extract available_sizes from specs if present
+    // Extract available_sizes and available_types from specs if present
     const sizesFromSpecs = specs?.available_sizes;
-    setAvailableSizes(Array.isArray(sizesFromSpecs) ? sizesFromSpecs.join(', ') : '');
+    const typesFromSpecs = specs?.available_types;
+    setSelectedSizes(Array.isArray(sizesFromSpecs) ? sizesFromSpecs : []);
+    setSelectedTypes(Array.isArray(typesFromSpecs) ? typesFromSpecs : []);
     setSpecifications(
       Object.entries(specs || {})
-        .filter(([key]) => key !== 'available_sizes')
+        .filter(([key]) => key !== 'available_sizes' && key !== 'available_types')
         .map(([key, value]) => ({ key, value: String(value) }))
     );
     setIsFormOpen(true);
@@ -394,9 +408,12 @@ export default function AdminPage() {
       return acc;
     }, {} as Record<string, string | string[]>);
 
-    // Add available sizes to specs
-    if (availableSizes.trim()) {
-      specsObject.available_sizes = availableSizes.split(',').map(s => s.trim()).filter(Boolean);
+    // Add available sizes and types to specs
+    if (selectedSizes.length > 0) {
+      specsObject.available_sizes = selectedSizes;
+    }
+    if (selectedTypes.length > 0) {
+      specsObject.available_types = selectedTypes;
     }
 
     const productData = {
@@ -601,18 +618,73 @@ export default function AdminPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="availableSizes">Налични размери</Label>
-                    <Input
-                      id="availableSizes"
-                      value={availableSizes}
-                      onChange={(e) => setAvailableSizes(e.target.value)}
-                      placeholder="14, 15, 16, 17, 18 (разделени със запетая)"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Въведете размерите разделени със запетая (напр. 14, 15, 16, 17, 18)
-                    </p>
-                  </div>
+                  {/* Available Sizes - Multi-select dropdown */}
+                  {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
+                    <div className="space-y-2">
+                      <Label>Налични размери</Label>
+                      <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
+                        {sizeOptions.map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSizes(prev => 
+                                prev.includes(size) 
+                                  ? prev.filter(s => s !== size)
+                                  : [...prev, size]
+                              );
+                            }}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                              selectedSizes.includes(size)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedSizes.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Избрани: {selectedSizes.sort((a, b) => Number(a) - Number(b)).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Available Types - Multi-select dropdown */}
+                  {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
+                    <div className="space-y-2">
+                      <Label>Налични видове (материал)</Label>
+                      <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
+                        {typeOptions.map((type) => (
+                          <button
+                            key={type.value}
+                            type="button"
+                            onClick={() => {
+                              setSelectedTypes(prev => 
+                                prev.includes(type.value) 
+                                  ? prev.filter(t => t !== type.value)
+                                  : [...prev, type.value]
+                              );
+                            }}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                              selectedTypes.includes(type.value)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                            }`}
+                          >
+                            {type.label}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedTypes.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Избрани: {selectedTypes.map(t => typeOptions.find(o => o.value === t)?.label).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="stock">Наличност</Label>
