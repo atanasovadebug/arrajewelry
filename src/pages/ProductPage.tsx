@@ -328,6 +328,9 @@ export default function ProductPage() {
                 {!selectedSize && (
                   <p className="text-xs text-destructive">Моля, изберете размер преди да добавите в количката</p>
                 )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Изборът на размер представлява индивидуална поръчка и не подлежи на връщане.
+                </p>
               </div>
             )}
 
