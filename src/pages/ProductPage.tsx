@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, Heart, Share2, Truck, CreditCard, Building2 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +30,10 @@ export default function ProductPage() {
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
 
-  // Material type labels
-  const typeLabels: Record<string, string> = {
-    'silver': 'Сребро',
-    'gold': 'Злато',
-    'rose-gold': 'Розово злато',
-    'white-gold': 'Бяло злато',
+  // Color/Finish labels
+  const colorLabels: Record<string, string> = {
+    'silver': 'Сребристо',
+    'gold': 'Златисто',
   };
 
   const { data: product, isLoading, error } = useQuery({
@@ -54,14 +51,66 @@ export default function ProductPage() {
     enabled: !!productId,
   });
 
-  // Check if product has available sizes defined (will be properly evaluated after product loads)
-  const specs = product?.specifications as Record<string, unknown> | null;
-  const hasAvailableSizes = Array.isArray(specs?.available_sizes) && (specs?.available_sizes as string[]).length > 0;
-  const requiresSize = hasAvailableSizes && (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+  // Fetch product variants for stock tracking
+  const { data: productVariants } = useQuery({
+    queryKey: ["product-variants", productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_variants")
+        .select("size, color, stock")
+        .eq("product_id", productId);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!productId,
+  });
 
-  // Check if product has available types defined
-  const hasAvailableTypes = Array.isArray(specs?.available_types) && (specs?.available_types as string[]).length > 0;
-  const requiresType = hasAvailableTypes && (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+  // Get available sizes from variants
+  const availableSizesFromVariants = productVariants 
+    ? [...new Set(productVariants.map(v => v.size))].sort((a, b) => Number(a) - Number(b))
+    : [];
+  
+  // Get available colors from variants
+  const availableColorsFromVariants = productVariants 
+    ? [...new Set(productVariants.map(v => v.color))]
+    : [];
+
+  // Check variant stock for selected combination
+  const getVariantStock = (size: string, color: string) => {
+    if (!productVariants) return 0;
+    const variant = productVariants.find(v => v.size === size && v.color === color);
+    return variant?.stock ?? 0;
+  };
+
+  // Check if a specific size has any stock (for any color)
+  const getSizeStock = (size: string) => {
+    if (!productVariants) return 0;
+    return productVariants
+      .filter(v => v.size === size)
+      .reduce((sum, v) => sum + v.stock, 0);
+  };
+
+  // Check if a specific color has any stock (for any size)
+  const getColorStock = (color: string) => {
+    if (!productVariants) return 0;
+    return productVariants
+      .filter(v => v.color === color)
+      .reduce((sum, v) => sum + v.stock, 0);
+  };
+
+  // Check if product has variants
+  const hasVariants = productVariants && productVariants.length > 0;
+  const requiresSize = hasVariants && availableSizesFromVariants.length > 0 && 
+    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+  const requiresColor = hasVariants && availableColorsFromVariants.length > 0 && 
+    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+
+  // Check if selected combination is in stock
+  const selectedVariantStock = selectedSize && selectedType 
+    ? getVariantStock(selectedSize, selectedType) 
+    : 0;
+  const isSelectedVariantInStock = selectedVariantStock > 0;
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -73,17 +122,36 @@ export default function ProductPage() {
       });
       return;
     }
-    if (requiresType && !selectedType) {
+    if (requiresColor && !selectedType) {
       toast({
-        title: "Изберете вид",
-        description: "Моля, изберете вид преди да добавите продукта в количката.",
+        title: "Изберете цвят",
+        description: "Моля, изберете цвят/покритие преди да добавите продукта в количката.",
         variant: "destructive",
       });
       return;
     }
-    const productName = requiresSize && selectedSize 
-      ? `${product.name} (${product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`})` 
-      : product.name;
+    if (hasVariants && !isSelectedVariantInStock) {
+      toast({
+        title: "Изчерпана наличност",
+        description: "Този вариант не е наличен в момента.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Build product name with size and color
+    let productName = product.name;
+    const extras: string[] = [];
+    if (selectedSize) {
+      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
+    }
+    if (selectedType) {
+      extras.push(colorLabels[selectedType] || selectedType);
+    }
+    if (extras.length > 0) {
+      productName = `${product.name} (${extras.join(', ')})`;
+    }
+    
     addItem({
       productId: product.id,
       name: productName,
@@ -107,18 +175,36 @@ export default function ProductPage() {
       });
       return;
     }
-    // Build product name with size and type
+    if (requiresColor && !selectedType) {
+      toast({
+        title: "Изберете цвят",
+        description: "Моля, изберете цвят/покритие преди да купите продукта.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (hasVariants && !isSelectedVariantInStock) {
+      toast({
+        title: "Изчерпана наличност",
+        description: "Този вариант не е наличен в момента.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Build product name with size and color
     let productName = product.name;
     const extras: string[] = [];
-    if (requiresSize && selectedSize) {
+    if (selectedSize) {
       extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
-    if (requiresType && selectedType) {
-      extras.push(typeLabels[selectedType] || selectedType);
+    if (selectedType) {
+      extras.push(colorLabels[selectedType] || selectedType);
     }
     if (extras.length > 0) {
       productName = `${product.name} (${extras.join(', ')})`;
     }
+    
     addItem({
       productId: product.id,
       name: productName,
@@ -172,12 +258,20 @@ export default function ProductPage() {
 
   const images = product.images && product.images.length > 0 ? product.images : ["/placeholder.svg"];
   const specifications = product.specifications as Record<string, unknown> | null;
-  const availableSizes = specifications?.available_sizes as string[] | undefined;
-  const availableTypes = specifications?.available_types as string[] | undefined;
   const displaySpecs = specifications 
     ? Object.fromEntries(Object.entries(specifications).filter(([k]) => k !== 'available_sizes' && k !== 'available_types'))
     : null;
-  const inStock = product.stock > 0;
+  
+  // For products with variants, check if any variant is in stock
+  // For products without variants, check the product stock
+  const inStock = hasVariants 
+    ? productVariants.some(v => v.stock > 0)
+    : product.stock > 0;
+  
+  // Disable add to cart if variant product and no valid selection or out of stock
+  const isAddToCartDisabled = hasVariants 
+    ? (!selectedSize || !selectedType || !isSelectedVariantInStock)
+    : !inStock;
 
   return (
     <Layout>
@@ -307,24 +401,38 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Size Selection - Required for bracelets, necklaces, and rings with available sizes */}
-            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces' || product.subcategory === 'rings') && availableSizes && availableSizes.length > 0 && (
+            {/* Size Selection - Based on product variants */}
+            {requiresSize && availableSizesFromVariants.length > 0 && (
               <div className="space-y-3">
                 <label className="text-sm font-medium">
-                  Размер: <span className="text-destructive">*</span>
+                  {product.subcategory === 'rings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
                 </label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger className={`w-full ${!selectedSize ? 'border-destructive/50' : ''}`}>
-                    <SelectValue placeholder="Изберете размер" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableSizes.map((size) => (
-                      <SelectItem key={size} value={size}>
+                <div className="flex flex-wrap gap-2">
+                  {availableSizesFromVariants.map((size) => {
+                    const sizeStock = selectedType ? getVariantStock(size, selectedType) : getSizeStock(size);
+                    const isOutOfStock = sizeStock === 0;
+                    const isSelected = selectedSize === size;
+                    
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => !isOutOfStock && setSelectedSize(size)}
+                        disabled={isOutOfStock}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all border ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : isOutOfStock
+                              ? 'bg-muted text-muted-foreground border-muted cursor-not-allowed line-through'
+                              : 'bg-background border-border hover:border-primary'
+                        }`}
+                      >
                         {product.subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                        {isOutOfStock && ' (Изчерпан)'}
+                      </button>
+                    );
+                  })}
+                </div>
                 {!selectedSize && (
                   <p className="text-xs text-destructive">Моля, изберете размер преди да добавите в количката</p>
                 )}
@@ -334,27 +442,54 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Type/Material Selection - Required for bracelets, necklaces, and rings with available types */}
-            {(product.subcategory === 'bracelets' || product.subcategory === 'necklaces' || product.subcategory === 'rings') && availableTypes && availableTypes.length > 0 && (
+            {/* Color/Finish Selection - Based on product variants */}
+            {requiresColor && availableColorsFromVariants.length > 0 && (
               <div className="space-y-3">
                 <label className="text-sm font-medium">
-                  Вид: <span className="text-destructive">*</span>
+                  Цвят / Покритие: <span className="text-destructive">*</span>
                 </label>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className={`w-full ${!selectedType ? 'border-destructive/50' : ''}`}>
-                    <SelectValue placeholder="Изберете вид" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {typeLabels[type] || type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex flex-wrap gap-2">
+                  {availableColorsFromVariants.map((color) => {
+                    const colorStock = selectedSize ? getVariantStock(selectedSize, color) : getColorStock(color);
+                    const isOutOfStock = colorStock === 0;
+                    const isSelected = selectedType === color;
+                    
+                    return (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => !isOutOfStock && setSelectedType(color)}
+                        disabled={isOutOfStock}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all border ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : isOutOfStock
+                              ? 'bg-muted text-muted-foreground border-muted cursor-not-allowed line-through'
+                              : 'bg-background border-border hover:border-primary'
+                        }`}
+                      >
+                        {colorLabels[color] || color}
+                        {isOutOfStock && ' (Изчерпан)'}
+                      </button>
+                    );
+                  })}
+                </div>
                 {!selectedType && (
-                  <p className="text-xs text-destructive">Моля, изберете вид преди да добавите в количката</p>
+                  <p className="text-xs text-destructive">Моля, изберете цвят преди да добавите в количката</p>
                 )}
+              </div>
+            )}
+
+            {/* Show selected variant stock status */}
+            {hasVariants && selectedSize && selectedType && (
+              <div className={`p-3 rounded-md text-sm ${
+                isSelectedVariantInStock 
+                  ? 'bg-green-50 text-green-700 border border-green-200' 
+                  : 'bg-red-50 text-red-700 border border-red-200'
+              }`}>
+                {isSelectedVariantInStock 
+                  ? `✓ В наличност (${selectedVariantStock} бр.)` 
+                  : '✗ Изчерпана наличност за избрания вариант'}
               </div>
             )}
 
@@ -383,7 +518,7 @@ export default function ProductPage() {
                 <Button 
                   className="flex-1 btn-elevated bg-primary hover:bg-primary/90"
                   onClick={handleAddToCart}
-                  disabled={!inStock}
+                  disabled={isAddToCartDisabled}
                 >
                   Добави в количката
                 </Button>
@@ -391,7 +526,7 @@ export default function ProductPage() {
                   variant="outline" 
                   className="flex-1 btn-elevated"
                   onClick={handleBuyNow}
-                  disabled={!inStock}
+                  disabled={isAddToCartDisabled}
                 >
                   Купи сега
                 </Button>

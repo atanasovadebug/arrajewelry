@@ -101,15 +101,28 @@ export default function AdminPage() {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
-  // Predefined size options
-  const sizeOptions = ['14', '15', '16', '17', '18', '19', '20', '21', '22'];
-  // Predefined material type options
-  const typeOptions = [
-    { value: 'silver', label: 'Сребро' },
-    { value: 'gold', label: 'Злато' },
-    { value: 'rose-gold', label: 'Розово злато' },
-    { value: 'white-gold', label: 'Бяло злато' },
+  // Predefined size options based on subcategory
+  const getSizeOptions = (sub: string) => {
+    switch (sub) {
+      case 'rings':
+        return ['5', '6', '7', '8', '9', '10'];
+      case 'necklaces':
+        return ['35', '36', '37', '38', '39', '40', '41', '42'];
+      case 'bracelets':
+        return ['14', '15', '16', '17', '18', '19', '20', '21'];
+      default:
+        return [];
+    }
+  };
+  
+  // Color/Finish options (for all jewelry)
+  const colorOptions = [
+    { value: 'silver', label: 'Сребристо' },
+    { value: 'gold', label: 'Златисто' },
   ];
+
+  // Product variants state
+  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number }>>([]);
 
   // Check authentication and admin role
   useEffect(() => {
@@ -296,6 +309,7 @@ export default function AdminPage() {
     setSpecifications([]);
     setSelectedSizes([]);
     setSelectedTypes([]);
+    setProductVariants([]);
     setEditingProduct(null);
   };
 
@@ -304,7 +318,7 @@ export default function AdminPage() {
     setIsFormOpen(true);
   };
 
-  const openEditForm = (product: Product) => {
+  const openEditForm = async (product: Product) => {
     setEditingProduct(product);
     setName(product.name);
     setDescription(product.description || '');
@@ -325,6 +339,14 @@ export default function AdminPage() {
         .filter(([key]) => key !== 'available_sizes' && key !== 'available_types')
         .map(([key, value]) => ({ key, value: String(value) }))
     );
+    
+    // Load existing variants
+    const { data: variants } = await supabase
+      .from('product_variants')
+      .select('size, color, stock')
+      .eq('product_id', product.id);
+    
+    setProductVariants(variants || []);
     setIsFormOpen(true);
   };
 
@@ -408,13 +430,16 @@ export default function AdminPage() {
       return acc;
     }, {} as Record<string, string | string[]>);
 
-    // Add available sizes and types to specs
+    // Add available sizes and types to specs for display purposes
     if (selectedSizes.length > 0) {
       specsObject.available_sizes = selectedSizes;
     }
     if (selectedTypes.length > 0) {
       specsObject.available_types = selectedTypes;
     }
+
+    // Calculate total stock from variants
+    const totalStock = productVariants.reduce((sum, v) => sum + v.stock, 0);
 
     const productData = {
       name: name.trim(),
@@ -423,7 +448,7 @@ export default function AdminPage() {
       original_price: originalPrice ? parseFloat(originalPrice) : null,
       category,
       subcategory: subcategory || null,
-      stock: parseInt(stock) || 0,
+      stock: totalStock || parseInt(stock) || 0,
       images,
       specifications: specsObject,
       is_active: true,
@@ -441,13 +466,38 @@ export default function AdminPage() {
           console.error(error);
         }
       } else {
+        // Update variants
+        await supabase
+          .from('product_variants')
+          .delete()
+          .eq('product_id', editingProduct.id);
+        
+        if (productVariants.length > 0) {
+          const { error: variantError } = await supabase
+            .from('product_variants')
+            .insert(productVariants.map(v => ({
+              product_id: editingProduct.id,
+              size: v.size,
+              color: v.color,
+              stock: v.stock
+            })));
+          
+          if (variantError && import.meta.env.DEV) {
+            console.error('Variant error:', variantError);
+          }
+        }
+        
         toast.success('Продуктът е обновен успешно');
         resetForm();
         setIsFormOpen(false);
         fetchProducts();
       }
     } else {
-      const { error } = await supabase.from('products').insert(productData);
+      const { data: newProduct, error } = await supabase
+        .from('products')
+        .insert(productData)
+        .select('id')
+        .single();
 
       if (error) {
         toast.error('Грешка при добавяне на продукта');
@@ -455,6 +505,22 @@ export default function AdminPage() {
           console.error(error);
         }
       } else {
+        // Insert variants for the new product
+        if (productVariants.length > 0 && newProduct) {
+          const { error: variantError } = await supabase
+            .from('product_variants')
+            .insert(productVariants.map(v => ({
+              product_id: newProduct.id,
+              size: v.size,
+              color: v.color,
+              stock: v.stock
+            })));
+          
+          if (variantError && import.meta.env.DEV) {
+            console.error('Variant error:', variantError);
+          }
+        }
+        
         toast.success('Продуктът е добавен успешно');
         resetForm();
         setIsFormOpen(false);
@@ -618,84 +684,135 @@ export default function AdminPage() {
                     </Select>
                   </div>
 
-                  {/* Available Sizes - Multi-select dropdown */}
+                  {/* Variant Management - For rings, bracelets, necklaces */}
                   {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
-                    <div className="space-y-2">
-                      <Label>Налични размери</Label>
-                      <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
-                        {sizeOptions.map((size) => (
-                          <button
-                            key={size}
-                            type="button"
-                            onClick={() => {
-                              setSelectedSizes(prev => 
-                                prev.includes(size) 
-                                  ? prev.filter(s => s !== size)
-                                  : [...prev, size]
-                              );
-                            }}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                              selectedSizes.includes(size)
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                            }`}
-                          >
-                            {size}
-                          </button>
-                        ))}
+                    <div className="md:col-span-2 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label>Варианти (Размер + Цвят = Наличност)</Label>
                       </div>
-                      {selectedSizes.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Избрани: {selectedSizes.sort((a, b) => Number(a) - Number(b)).join(', ')}
-                        </p>
+                      
+                      {/* Size selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">
+                          {subcategory === 'rings' ? 'Размери (5-10)' : subcategory === 'necklaces' ? 'Дължина (35-42 см)' : 'Размери (14-21 см)'}
+                        </Label>
+                        <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
+                          {getSizeOptions(subcategory).map((size) => (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSizes(prev => 
+                                  prev.includes(size) 
+                                    ? prev.filter(s => s !== size)
+                                    : [...prev, size]
+                                );
+                              }}
+                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                                selectedSizes.includes(size)
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                              }`}
+                            >
+                              {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Color selection */}
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">Цвят / Покритие</Label>
+                        <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
+                          {colorOptions.map((color) => (
+                            <button
+                              key={color.value}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTypes(prev => 
+                                  prev.includes(color.value) 
+                                    ? prev.filter(t => t !== color.value)
+                                    : [...prev, color.value]
+                                );
+                              }}
+                              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                                selectedTypes.includes(color.value)
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                              }`}
+                            >
+                              {color.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Variant stock grid */}
+                      {selectedSizes.length > 0 && selectedTypes.length > 0 && (
+                        <div className="space-y-3 border border-input rounded-md p-4 bg-muted/30">
+                          <Label className="text-sm font-medium">Наличност по варианти</Label>
+                          <div className="grid gap-3">
+                            {selectedSizes.sort((a, b) => Number(a) - Number(b)).map((size) => (
+                              <div key={size} className="space-y-2">
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                  {selectedTypes.map((color) => {
+                                    const variant = productVariants.find(v => v.size === size && v.color === color);
+                                    const colorLabel = colorOptions.find(c => c.value === color)?.label || color;
+                                    return (
+                                      <div key={`${size}-${color}`} className="flex items-center gap-2">
+                                        <span className="text-sm min-w-[80px]">{colorLabel}:</span>
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          value={variant?.stock ?? 0}
+                                          onChange={(e) => {
+                                            const newStock = parseInt(e.target.value) || 0;
+                                            setProductVariants(prev => {
+                                              const existing = prev.find(v => v.size === size && v.color === color);
+                                              if (existing) {
+                                                return prev.map(v => 
+                                                  v.size === size && v.color === color 
+                                                    ? { ...v, stock: newStock }
+                                                    : v
+                                                );
+                                              } else {
+                                                return [...prev, { size, color, stock: newStock }];
+                                              }
+                                            });
+                                          }}
+                                          className="w-20 h-8"
+                                        />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Обща наличност: {productVariants.reduce((sum, v) => sum + v.stock, 0)} бр.
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
 
-                  {/* Available Types - Multi-select dropdown */}
-                  {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
+                  {/* Simple stock for non-variant products */}
+                  {!(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
                     <div className="space-y-2">
-                      <Label>Налични видове (материал)</Label>
-                      <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
-                        {typeOptions.map((type) => (
-                          <button
-                            key={type.value}
-                            type="button"
-                            onClick={() => {
-                              setSelectedTypes(prev => 
-                                prev.includes(type.value) 
-                                  ? prev.filter(t => t !== type.value)
-                                  : [...prev, type.value]
-                              );
-                            }}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                              selectedTypes.includes(type.value)
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                            }`}
-                          >
-                            {type.label}
-                          </button>
-                        ))}
-                      </div>
-                      {selectedTypes.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          Избрани: {selectedTypes.map(t => typeOptions.find(o => o.value === t)?.label).join(', ')}
-                        </p>
-                      )}
+                      <Label htmlFor="stock">Наличност</Label>
+                      <Input
+                        id="stock"
+                        type="number"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                        placeholder="10"
+                      />
                     </div>
                   )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="stock">Наличност</Label>
-                    <Input
-                      id="stock"
-                      type="number"
-                      value={stock}
-                      onChange={(e) => setStock(e.target.value)}
-                      placeholder="10"
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-2">
