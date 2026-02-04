@@ -5,9 +5,17 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Името е задължително").max(100, "Името е прекалено дълго"),
+  email: z.string().trim().email("Невалиден имейл адрес").max(255, "Имейлът е прекалено дълъг"),
+  phone: z.string().trim().max(20, "Телефонът е прекалено дълъг").optional().or(z.literal("")),
+  message: z.string().trim().min(1, "Съобщението е задължително").max(2000, "Съобщението е прекалено дълго"),
+});
 
 export default function ContactPage() {
-  // NOTE: We'll wire this to a backend inbox (Admin tab) next.
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitting, setSubmitting] = useState(false);
 
@@ -19,8 +27,33 @@ export default function ContactPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
     try {
-      toast.error("Формата за контакт се настройва в момента. Моля, опитайте по-късно.");
+      // Validate input
+      const validated = contactSchema.parse(form);
+
+      // Insert into database
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert({
+          name: validated.name,
+          email: validated.email,
+          phone: validated.phone || null,
+          message: validated.message,
+        });
+
+      if (error) {
+        throw new Error("Грешка при изпращане на съобщението");
+      }
+
+      toast.success("Съобщението е изпратено успешно! Ще се свържем с вас скоро.");
+      setForm({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+      } else {
+        toast.error("Възникна грешка. Моля, опитайте отново.");
+      }
     } finally {
       setSubmitting(false);
     }

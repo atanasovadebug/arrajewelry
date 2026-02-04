@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye } from 'lucide-react';
+import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye, MessageSquare, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { formatDualCurrency } from '@/lib/currency';
@@ -72,6 +72,16 @@ interface OrderItem {
   quantity: number;
 }
 
+interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 export default function AdminPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -86,6 +96,9 @@ export default function AdminPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('products');
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   
   // Form state
   const [name, setName] = useState('');
@@ -181,6 +194,7 @@ export default function AdminPage() {
     if (isAdmin) {
       fetchProducts();
       fetchOrders();
+      fetchMessages();
     }
   }, [isAdmin]);
 
@@ -223,6 +237,59 @@ export default function AdminPage() {
       setOrders((data || []) as Order[]);
     }
     setOrdersLoading(false);
+  };
+
+  const fetchMessages = async () => {
+    setMessagesLoading(true);
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Грешка при зареждане на съобщенията');
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
+    } else {
+      setMessages((data || []) as ContactMessage[]);
+    }
+    setMessagesLoading(false);
+  };
+
+  const markMessageAsRead = async (messageId: string) => {
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ is_read: true })
+      .eq('id', messageId);
+
+    if (error) {
+      toast.error('Грешка при маркиране като прочетено');
+    } else {
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, is_read: true } : m));
+      if (selectedMessage?.id === messageId) {
+        setSelectedMessage({ ...selectedMessage, is_read: true });
+      }
+    }
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Сигурни ли сте, че искате да изтриете това съобщение?')) return;
+
+    const { error } = await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (error) {
+      toast.error('Грешка при изтриване на съобщението');
+    } else {
+      toast.success('Съобщението е изтрито');
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      if (selectedMessage?.id === messageId) {
+        setSelectedMessage(null);
+      }
+    }
   };
 
   const fetchOrderItems = async (orderId: string) => {
@@ -589,7 +656,7 @@ export default function AdminPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="products" className="gap-2">
               <ShoppingBag className="h-4 w-4" />
               Продукти
@@ -597,6 +664,15 @@ export default function AdminPage() {
             <TabsTrigger value="orders" className="gap-2">
               <Package className="h-4 w-4" />
               Поръчки
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="gap-2 relative">
+              <MessageSquare className="h-4 w-4" />
+              Съобщения
+              {messages.filter(m => !m.is_read).length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {messages.filter(m => !m.is_read).length}
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -1111,6 +1187,123 @@ export default function AdminPage() {
                               <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
                                 <Eye className="h-4 w-4" />
                                 Детайли
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="messages" className="space-y-6">
+            {selectedMessage ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Съобщение от {selectedMessage.name}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedMessage(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="font-medium">Информация за контакт</h3>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-muted-foreground">Име:</span> {selectedMessage.name}</p>
+                        <p><span className="text-muted-foreground">Имейл:</span> {selectedMessage.email}</p>
+                        {selectedMessage.phone && (
+                          <p><span className="text-muted-foreground">Телефон:</span> {selectedMessage.phone}</p>
+                        )}
+                        <p><span className="text-muted-foreground">Дата:</span> {new Date(selectedMessage.created_at).toLocaleDateString('bg-BG', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="font-medium">Съобщение</h3>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">{selectedMessage.message}</p>
+                  </div>
+
+                  <div className="flex gap-3 pt-4 border-t">
+                    {!selectedMessage.is_read && (
+                      <Button variant="outline" onClick={() => markMessageAsRead(selectedMessage.id)} className="gap-2">
+                        <Check className="h-4 w-4" />
+                        Маркирай като прочетено
+                      </Button>
+                    )}
+                    <a href={`mailto:${selectedMessage.email}`}>
+                      <Button variant="default" className="gap-2">
+                        Отговори по имейл
+                      </Button>
+                    </a>
+                    <Button variant="destructive" onClick={() => deleteMessage(selectedMessage.id)} className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Изтрий
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Съобщения ({messages.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {messagesLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Зареждане...</div>
+                  ) : messages.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      Няма съобщения
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer ${!msg.is_read ? 'bg-primary/5 border-primary/30' : ''}`}
+                          onClick={() => {
+                            setSelectedMessage(msg);
+                            if (!msg.is_read) {
+                              markMessageAsRead(msg.id);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium">{msg.name}</span>
+                                {!msg.is_read && (
+                                  <Badge variant="default" className="text-xs">Ново</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">{msg.email}</p>
+                              <p className="text-sm text-muted-foreground truncate max-w-md">{msg.message}</p>
+                            </div>
+                            <div className="text-right space-y-1 ml-4">
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(msg.created_at).toLocaleDateString('bg-BG', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              <Button variant="outline" size="sm" className="gap-2">
+                                <Eye className="h-4 w-4" />
+                                Виж
                               </Button>
                             </div>
                           </div>
