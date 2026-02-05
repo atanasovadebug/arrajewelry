@@ -86,6 +86,8 @@ export default function CheckoutPage() {
             price: item.price,
             quantity: item.quantity,
             image: item.image,
+            size: item.size,
+            color: item.color,
           })),
           customerEmail: formData.email,
           customerName: formData.name,
