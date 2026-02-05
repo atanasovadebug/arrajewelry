@@ -176,6 +176,38 @@ serve(async (req) => {
       if (itemsError) {
         console.error("Order items error:", itemsError);
       }
+
+      // Decrement product stock for each purchased item
+      for (const item of cartItems) {
+        const productId = item.productId?.substring(0, 100);
+        const quantity = Math.max(1, Math.min(Math.floor(item.quantity || 1), 100));
+        const size = item.size ? sanitizeString(item.size, 50) : null;
+        const color = item.color ? sanitizeString(item.color, 50) : null;
+
+        if (size && color) {
+          // Decrement variant stock
+          const { error: variantError } = await supabase.rpc("decrement_variant_stock", {
+            p_product_id: productId,
+            p_size: size,
+            p_color: color,
+            p_quantity: quantity,
+          });
+
+          if (variantError) {
+            console.error("Variant stock decrement error:", variantError);
+          }
+        } else {
+          // Decrement main product stock
+          const { error: stockError } = await supabase.rpc("decrement_product_stock", {
+            p_product_id: productId,
+            p_quantity: quantity,
+          });
+
+          if (stockError) {
+            console.error("Product stock decrement error:", stockError);
+          }
+        }
+      }
     }
 
     return new Response(
