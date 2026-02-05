@@ -9,6 +9,8 @@ export interface CartItem {
   price: number;
   image: string;
   quantity: number;
+  size?: string;
+  color?: string;
 }
 
 export type ShippingMethod = "standard" | "automat";
