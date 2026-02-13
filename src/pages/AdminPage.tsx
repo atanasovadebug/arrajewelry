@@ -1030,7 +1030,7 @@ export default function AdminPage() {
                         {categories.find(c => c.value === product.category)?.label}
                       </p>
                       <p className="text-primary font-semibold">{product.price.toFixed(2)} лв.</p>
-                      <p className="text-xs text-muted-foreground">Наличност: {product.stock}</p>
+                      
                     </div>
                     <div className="flex flex-col gap-2">
                       <Button
