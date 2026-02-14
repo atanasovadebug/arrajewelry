@@ -488,7 +488,7 @@ export default function ProductPage() {
                   : 'bg-red-50 text-red-700 border border-red-200'
               }`}>
                 {isSelectedVariantInStock 
-                  ? `✓ В наличност (${selectedVariantStock} бр.)` 
+                  ? '✓ В наличност' 
                   : '✗ Изчерпана наличност за избрания вариант'}
               </div>
             )}
