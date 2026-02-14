@@ -417,7 +417,7 @@ export default function ProductPage() {
                       <button
                         key={size}
                         type="button"
-                        onClick={() => !isOutOfStock && setSelectedSize(size)}
+                        onClick={() => { if (!isOutOfStock) { setSelectedSize(size); setQuantity(1); } }}
                         disabled={isOutOfStock}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all border ${
                           isSelected
@@ -458,7 +458,7 @@ export default function ProductPage() {
                       <button
                         key={color}
                         type="button"
-                        onClick={() => !isOutOfStock && setSelectedType(color)}
+                        onClick={() => { if (!isOutOfStock) { setSelectedType(color); setQuantity(1); } }}
                         disabled={isOutOfStock}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all border ${
                           isSelected
@@ -506,8 +506,14 @@ export default function ProductPage() {
                   </button>
                   <span className="px-4 py-2 border-x border-border">{quantity}</span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="px-3 py-2 hover:bg-secondary transition-colors"
+                    onClick={() => {
+                      const maxStock = hasVariants ? selectedVariantStock : product.stock;
+                      if (quantity < maxStock) {
+                        setQuantity(quantity + 1);
+                      }
+                    }}
+                    disabled={quantity >= (hasVariants ? selectedVariantStock : product.stock)}
+                    className="px-3 py-2 hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     +
                   </button>
