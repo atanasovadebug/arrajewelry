@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CreditCard, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
-import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_STANDARD_BGN, SHIPPING_COST_AUTOMAT_BGN } from "@/lib/currency";
+import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_OFFICE_BGN, SHIPPING_COST_AUTOMAT_BGN, SHIPPING_COST_ADDRESS_BGN } from "@/lib/currency";
 import type { ShippingMethod } from "@/contexts/CartContext";
 
 
@@ -229,15 +229,15 @@ export default function CheckoutPage() {
                   >
                     <label
                       className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                        shippingMethod === "standard"
+                        shippingMethod === "office"
                           ? "border-primary bg-primary/5"
                           : "hover:border-muted-foreground/50"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <RadioGroupItem value="standard" />
+                        <RadioGroupItem value="office" />
                         <div>
-                          <p className="font-medium text-sm">Доставка до адрес (Speedy)</p>
+                          <p className="font-medium text-sm">Доставка до офис (Speedy)</p>
                           <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO}</p>
                         </div>
                       </div>
@@ -245,7 +245,7 @@ export default function CheckoutPage() {
                         {subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? (
                           <span className="text-green-600">Безплатна</span>
                         ) : (
-                          formatDualCurrency(SHIPPING_COST_STANDARD_BGN)
+                          formatDualCurrency(SHIPPING_COST_OFFICE_BGN)
                         )}
                       </span>
                     </label>
@@ -268,6 +268,28 @@ export default function CheckoutPage() {
                           <span className="text-green-600">Безплатна</span>
                         ) : (
                           formatDualCurrency(SHIPPING_COST_AUTOMAT_BGN)
+                        )}
+                      </span>
+                    </label>
+                    <label
+                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
+                        shippingMethod === "address"
+                          ? "border-primary bg-primary/5"
+                          : "hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="address" />
+                        <div>
+                          <p className="font-medium text-sm">Доставка до адрес (Speedy)</p>
+                          <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO}</p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-sm">
+                        {subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? (
+                          <span className="text-green-600">Безплатна</span>
+                        ) : (
+                          formatDualCurrency(SHIPPING_COST_ADDRESS_BGN)
                         )}
                       </span>
                     </label>
@@ -299,7 +321,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="sm:col-span-2">
                     <Label htmlFor="address">
-                      {shippingMethod === "automat" ? "Адрес на автомат *" : "Адрес *"}
+                      {shippingMethod === "automat" ? "Адрес на автомат *" : shippingMethod === "office" ? "Адрес на офис *" : "Адрес *"}
                     </Label>
                     <Input
                       id="address"
@@ -307,7 +329,7 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleChange}
                       required
-                      placeholder={shippingMethod === "automat" ? "Номер на Speedy автомат" : "Улица, номер, вход, етаж, апартамент"}
+                      placeholder={shippingMethod === "automat" ? "Номер на Speedy автомат" : shippingMethod === "office" ? "Адрес на Speedy офис" : "Улица, номер, вход, етаж, апартамент"}
                       className="mt-1"
                     />
                   </div>
@@ -381,7 +403,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
-                      Доставка ({shippingMethod === "automat" ? "Speedy Автомат" : "Speedy"})
+                      Доставка ({shippingMethod === "automat" ? "Speedy Автомат" : shippingMethod === "office" ? "Speedy Офис" : "Speedy до адрес"})
                     </span>
                     <span>
                       {shippingCost === 0 ? (

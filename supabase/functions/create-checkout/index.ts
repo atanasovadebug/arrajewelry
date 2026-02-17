@@ -29,7 +29,7 @@ interface CheckoutRequest {
     address: string;
     postalCode: string;
   };
-  shippingMethod?: "standard" | "automat";
+  shippingMethod?: "office" | "automat" | "address";
   notes?: string;
   successUrl: string;
   cancelUrl: string;
@@ -129,15 +129,16 @@ serve(async (req) => {
     // EUR to BGN rate (fixed rate)
     const EUR_TO_BGN_RATE = 1.9558;
     const FREE_SHIPPING_THRESHOLD_EUR = 100;
-    const SHIPPING_COST_STANDARD_BGN = 5;
-    const SHIPPING_COST_AUTOMAT_BGN = 3;
+    const SHIPPING_COST_OFFICE_BGN = 5;
+    const SHIPPING_COST_AUTOMAT_BGN = 3.12;
+    const SHIPPING_COST_ADDRESS_BGN = 10.80;
     
     // Calculate totals in BGN first
     const subtotalBGN = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const freeShippingThresholdBGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
-    const baseShippingCostBGN = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : SHIPPING_COST_STANDARD_BGN;
+    const baseShippingCostBGN = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : shippingMethod === "address" ? SHIPPING_COST_ADDRESS_BGN : SHIPPING_COST_OFFICE_BGN;
     const shippingCostBGN = subtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
-    const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : "Доставка Speedy";
+    const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : shippingMethod === "address" ? "Доставка до адрес (Speedy)" : "Доставка до офис (Speedy)";
 
     // Convert BGN prices to EUR for Stripe (BGN is no longer supported)
     const toEurCents = (bgnAmount: number) => Math.round((bgnAmount / EUR_TO_BGN_RATE) * 100);

@@ -39,13 +39,16 @@ export const FREE_SHIPPING_THRESHOLD_BGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_
 
 /**
  * Shipping costs in BGN
- * Standard delivery: 5 лв. (~2.56 €)
- * Speedy Automat: 3 лв. (~1.53 €)
+ * До офис (Speedy): 5 лв. (~2.56 €)
+ * Speedy Автомат: 3.12 лв. (~1.60 €)
+ * До адрес (Speedy): 10.80 лв. (~5.52 €)
  */
-export const SHIPPING_COST_STANDARD_BGN = 5;
-export const SHIPPING_COST_AUTOMAT_BGN = 3;
-export const SHIPPING_COST_STANDARD_EUR = SHIPPING_COST_STANDARD_BGN / EUR_TO_BGN_RATE;
+export const SHIPPING_COST_OFFICE_BGN = 5;
+export const SHIPPING_COST_AUTOMAT_BGN = 3.12;
+export const SHIPPING_COST_ADDRESS_BGN = 10.80;
+export const SHIPPING_COST_OFFICE_EUR = SHIPPING_COST_OFFICE_BGN / EUR_TO_BGN_RATE;
 export const SHIPPING_COST_AUTOMAT_EUR = SHIPPING_COST_AUTOMAT_BGN / EUR_TO_BGN_RATE;
+export const SHIPPING_COST_ADDRESS_EUR = SHIPPING_COST_ADDRESS_BGN / EUR_TO_BGN_RATE;
 
 /**
  * Shipping time info
