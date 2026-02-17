@@ -13,13 +13,14 @@ import { CreditCard, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_OFFICE_BGN, SHIPPING_COST_AUTOMAT_BGN, SHIPPING_COST_ADDRESS_BGN } from "@/lib/currency";
 import type { ShippingMethod } from "@/contexts/CartContext";
-
+import { SpeedyOfficeSelector, type SpeedyOffice } from "@/components/SpeedyOfficeSelector";
 
 export default function CheckoutPage() {
   const { items, subtotal, shippingCost, total, clearCart, shippingMethod, setShippingMethod } = useCart();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [selectedOffice, setSelectedOffice] = useState<SpeedyOffice | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -31,7 +32,6 @@ export default function CheckoutPage() {
   });
 
   const sanitizePhoneInput = (value: string) => {
-    // allow only digits and a single leading +
     const cleaned = value.replace(/[^0-9+]/g, "");
     if (!cleaned.includes("+")) return cleaned;
     return cleaned.startsWith("+")
@@ -41,16 +41,9 @@ export default function CheckoutPage() {
 
   const isValidBulgarianPhone = (value: string) => {
     const v = value.replace(/\s+/g, "");
-
-    // 0XXXXXXXXX (10 digits) e.g. 0896892555
     if (/^0\d{9}$/.test(v)) return true;
-
-    // +359XXXXXXXXX (13 chars, + + 12 digits) e.g. +359896892555
     if (/^\+359\d{9}$/.test(v)) return true;
-
-    // 359XXXXXXXXX (12 digits) e.g. 359896892555
     if (/^359\d{9}$/.test(v)) return true;
-
     return false;
   };
 
@@ -60,6 +53,14 @@ export default function CheckoutPage() {
       ...prev,
       [name]: name === "phone" ? sanitizePhoneInput(value) : value,
     }));
+  };
+
+  const handleShippingMethodChange = (value: ShippingMethod) => {
+    setShippingMethod(value);
+    // Clear selected office when switching methods
+    if (value === "address") {
+      setSelectedOffice(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -75,9 +76,42 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Validate office/automat selection
+    if ((shippingMethod === "office" || shippingMethod === "automat") && !selectedOffice) {
+      toast.error(
+        shippingMethod === "office"
+          ? "Моля, изберете Speedy офис от картата"
+          : "Моля, изберете Speedy автомат от картата"
+      );
+      return;
+    }
+
+    // Validate address fields for personal address delivery
+    if (shippingMethod === "address") {
+      if (!formData.city || !formData.address || !formData.postalCode) {
+        toast.error("Моля, попълнете всички полета за адрес");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
+      const shippingAddress =
+        shippingMethod === "address"
+          ? {
+              city: formData.city,
+              address: formData.address,
+              postalCode: formData.postalCode,
+            }
+          : {
+              officeId: selectedOffice!.id,
+              officeName: selectedOffice!.name,
+              officeAddress: selectedOffice!.address,
+              officeCity: selectedOffice!.city,
+              officeType: selectedOffice!.type,
+            };
+
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: {
           items: items.map((item) => ({
@@ -92,11 +126,7 @@ export default function CheckoutPage() {
           customerEmail: formData.email,
           customerName: formData.name,
           customerPhone: formData.phone,
-          shippingAddress: {
-            city: formData.city,
-            address: formData.address,
-            postalCode: formData.postalCode,
-          },
+          shippingAddress,
           shippingMethod: shippingMethod,
           notes: formData.notes,
           successUrl: `${window.location.origin}/order-success`,
@@ -105,11 +135,9 @@ export default function CheckoutPage() {
       });
 
       if (error) throw new Error(error.message);
-      
+
       if (data?.url) {
-        // Store cart items in sessionStorage for order creation after payment
         sessionStorage.setItem("pending_cart_items", JSON.stringify(items));
-        // Redirect to Stripe Checkout
         window.location.href = data.url;
         return;
       } else {
@@ -169,45 +197,20 @@ export default function CheckoutPage() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <Label htmlFor="name">Име и фамилия *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="mt-1"
-                    />
+                    <Input id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="email">Имейл *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="mt-1"
-                    />
+                    <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="phone">Телефон *</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      className="mt-1"
-                    />
+                    <Input id="phone" name="phone" type="tel" inputMode="tel" autoComplete="tel" value={formData.phone} onChange={handleChange} required className="mt-1" />
                   </div>
                 </div>
               </motion.div>
 
-              {/* Shipping Address */}
+              {/* Shipping */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -216,24 +219,19 @@ export default function CheckoutPage() {
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Truck className="h-5 w-5 text-primary" />
-                  <h2 className="font-heading text-lg font-semibold">Адрес за доставка</h2>
+                  <h2 className="font-heading text-lg font-semibold">Доставка</h2>
                 </div>
-                
+
                 {/* Shipping Method Selection */}
                 <div className="mb-6">
                   <Label className="text-sm font-medium mb-3 block">Метод на доставка</Label>
-                  <RadioGroup 
-                    value={shippingMethod} 
-                    onValueChange={(value) => setShippingMethod(value as ShippingMethod)}
+                  <RadioGroup
+                    value={shippingMethod}
+                    onValueChange={(v) => handleShippingMethodChange(v as ShippingMethod)}
                     className="space-y-2"
                   >
-                    <label
-                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                        shippingMethod === "office"
-                          ? "border-primary bg-primary/5"
-                          : "hover:border-muted-foreground/50"
-                      }`}
-                    >
+                    {/* Office */}
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "office" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50"}`}>
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="office" />
                         <div>
@@ -249,13 +247,9 @@ export default function CheckoutPage() {
                         )}
                       </span>
                     </label>
-                    <label
-                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                        shippingMethod === "automat"
-                          ? "border-primary bg-primary/5"
-                          : "hover:border-muted-foreground/50"
-                      }`}
-                    >
+
+                    {/* Automat */}
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "automat" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50"}`}>
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="automat" />
                         <div>
@@ -271,13 +265,9 @@ export default function CheckoutPage() {
                         )}
                       </span>
                     </label>
-                    <label
-                      className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                        shippingMethod === "address"
-                          ? "border-primary bg-primary/5"
-                          : "hover:border-muted-foreground/50"
-                      }`}
-                    >
+
+                    {/* Address */}
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "address" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50"}`}>
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="address" />
                         <div>
@@ -295,55 +285,41 @@ export default function CheckoutPage() {
                     </label>
                   </RadioGroup>
                 </div>
-                
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="city">Град *</Label>
-                    <Input
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      required
-                      className="mt-1"
+
+                {/* Speedy Widget for office/automat */}
+                {(shippingMethod === "office" || shippingMethod === "automat") && (
+                  <div className="mb-6">
+                    <SpeedyOfficeSelector
+                      type={shippingMethod === "automat" ? "automat" : "office"}
+                      selectedOffice={selectedOffice}
+                      onSelect={setSelectedOffice}
+                      onClear={() => setSelectedOffice(null)}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="postalCode">Пощенски код *</Label>
-                    <Input
-                      id="postalCode"
-                      name="postalCode"
-                      value={formData.postalCode}
-                      onChange={handleChange}
-                      required
-                      className="mt-1"
-                    />
+                )}
+
+                {/* Address fields for personal address */}
+                {shippingMethod === "address" && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">Град *</Label>
+                      <Input id="city" name="city" value={formData.city} onChange={handleChange} required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="postalCode">Пощенски код *</Label>
+                      <Input id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleChange} required className="mt-1" />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label htmlFor="address">Адрес *</Label>
+                      <Input id="address" name="address" value={formData.address} onChange={handleChange} required placeholder="Улица, номер, вход, етаж, апартамент" className="mt-1" />
+                    </div>
                   </div>
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="address">
-                      {shippingMethod === "automat" ? "Адрес на автомат *" : shippingMethod === "office" ? "Адрес на офис *" : "Адрес *"}
-                    </Label>
-                    <Input
-                      id="address"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      required
-                      placeholder={shippingMethod === "automat" ? "Номер на Speedy автомат" : shippingMethod === "office" ? "Адрес на Speedy офис" : "Улица, номер, вход, етаж, апартамент"}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="notes">Бележки към поръчката</Label>
-                    <Textarea
-                      id="notes"
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleChange}
-                      placeholder="Допълнителни указания за доставка..."
-                      className="mt-1"
-                    />
-                  </div>
+                )}
+
+                {/* Notes */}
+                <div className="mt-4">
+                  <Label htmlFor="notes">Бележки към поръчката</Label>
+                  <Textarea id="notes" name="notes" value={formData.notes} onChange={handleChange} placeholder="Допълнителни указания за доставка..." className="mt-1" />
                 </div>
               </motion.div>
 
@@ -376,21 +352,15 @@ export default function CheckoutPage() {
             >
               <div className="bg-card border rounded-lg p-6">
                 <h2 className="font-heading text-lg font-semibold mb-4">Вашата поръчка</h2>
-                
+
                 <div className="space-y-4 mb-6">
                   {items.map((item) => (
                     <div key={item.id} className="flex gap-3">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded"
-                      />
+                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.name}</p>
                         <p className="text-sm text-muted-foreground">x{item.quantity}</p>
-                        <p className="text-sm font-semibold">
-                          {formatDualCurrency(item.price * item.quantity)}
-                        </p>
+                        <p className="text-sm font-semibold">{formatDualCurrency(item.price * item.quantity)}</p>
                       </div>
                     </div>
                   ))}
@@ -425,12 +395,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full mt-6"
-                  size="lg"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" className="w-full mt-6" size="lg" disabled={isSubmitting}>
                   {isSubmitting ? "Изпращане..." : "Завърши поръчката"}
                 </Button>
 
