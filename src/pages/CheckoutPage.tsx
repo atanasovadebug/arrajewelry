@@ -105,11 +105,9 @@ export default function CheckoutPage() {
               postalCode: formData.postalCode,
             }
           : {
-              officeId: selectedOffice!.id,
-              officeName: selectedOffice!.name,
-              officeAddress: selectedOffice!.address,
-              officeCity: selectedOffice!.city,
-              officeType: selectedOffice!.type,
+              city: selectedOffice!.city || "—",
+              address: `${selectedOffice!.name}${selectedOffice!.address ? " - " + selectedOffice!.address : ""}`,
+              postalCode: "—",
             };
 
       const { data, error } = await supabase.functions.invoke("create-checkout", {
