@@ -17,6 +17,7 @@ interface CartItem {
   price: number;
   quantity: number;
   image: string;
+  category?: string;
 }
 
 interface CheckoutRequest {
@@ -31,6 +32,7 @@ interface CheckoutRequest {
   };
   shippingMethod?: "office" | "automat" | "address";
   notes?: string;
+  discountCode?: string | null;
   successUrl: string;
   cancelUrl: string;
 }
@@ -64,7 +66,31 @@ serve(async (req) => {
     });
 
     const body: CheckoutRequest = await req.json();
-    const { items, customerEmail, customerName, customerPhone, shippingAddress, shippingMethod, notes, successUrl, cancelUrl } = body;
+    const { items, customerEmail, customerName, customerPhone, shippingAddress, shippingMethod, notes, discountCode, successUrl, cancelUrl } = body;
+
+    // Validate and apply discount code
+    let discountPercent = 0;
+    let discountType: "all" | "moissanite" | null = null;
+    let discountLabel = "";
+
+    if (discountCode) {
+      const code = String(discountCode).trim().toLowerCase();
+      if (code === "arra10") {
+        discountPercent = 10;
+        discountType = "all";
+        discountLabel = "Отстъпка ARRA10 (−10%)";
+      } else if (code === "radina15") {
+        const hasMoissanite = items.some((item: CartItem) =>
+          item.category?.toLowerCase() === "moissanite"
+        );
+        if (hasMoissanite) {
+          discountPercent = 15;
+          discountType = "moissanite";
+          discountLabel = "Отстъпка RADINA15 (−15% Моасанит)";
+        }
+        // Invalid or inapplicable code is silently ignored server-side
+      }
+    }
 
     // Validate URLs
     if (!successUrl || !cancelUrl || !validateUrl(successUrl) || !validateUrl(cancelUrl)) {
@@ -135,9 +161,22 @@ serve(async (req) => {
     
     // Calculate totals in BGN first
     const subtotalBGN = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    
+    // Calculate discount in BGN
+    let discountAmountBGN = 0;
+    if (discountType === "all") {
+      discountAmountBGN = subtotalBGN * (discountPercent / 100);
+    } else if (discountType === "moissanite") {
+      const moissaniteTotal = items
+        .filter((item: CartItem) => item.category?.toLowerCase() === "moissanite")
+        .reduce((sum: number, item: CartItem) => sum + item.price * item.quantity, 0);
+      discountAmountBGN = moissaniteTotal * (discountPercent / 100);
+    }
+
+    const discountedSubtotalBGN = subtotalBGN - discountAmountBGN;
     const freeShippingThresholdBGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
     const baseShippingCostBGN = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : shippingMethod === "address" ? SHIPPING_COST_ADDRESS_BGN : SHIPPING_COST_OFFICE_BGN;
-    const shippingCostBGN = subtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
+    const shippingCostBGN = discountedSubtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
     const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : shippingMethod === "address" ? "Доставка до адрес (Speedy)" : "Доставка до офис (Speedy)";
 
     // Convert BGN prices to EUR for Stripe (BGN is no longer supported)
@@ -149,11 +188,9 @@ serve(async (req) => {
         currency: "eur",
         product_data: {
           name: item.name.substring(0, 200).replace(/[<>]/g, ""),
-          // Stripe requires absolute, publicly accessible URLs.
-          // Our UI can use relative paths (e.g. /placeholder.svg), so we only pass valid URLs.
           images: item.image && validateUrl(item.image) ? [item.image] : [],
         },
-        unit_amount: toEurCents(item.price), // Convert BGN to EUR cents
+        unit_amount: toEurCents(item.price),
       },
       quantity: item.quantity,
     }));
@@ -173,11 +210,24 @@ serve(async (req) => {
       });
     }
 
+    // Create a Stripe coupon for the discount if applicable
+    let stripeCouponId: string | undefined;
+    if (discountAmountBGN > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: toEurCents(discountAmountBGN),
+        currency: "eur",
+        name: discountLabel,
+        duration: "once",
+      });
+      stripeCouponId = coupon.id;
+    }
+
     // Create Stripe checkout session with sanitized data
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
+      ...(stripeCouponId ? { discounts: [{ coupon: stripeCouponId }] } : {}),
       success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
       customer_email: sanitized.customerEmail,
@@ -189,6 +239,8 @@ serve(async (req) => {
         shippingPostalCode: sanitized.shippingAddress.postalCode,
         notes: sanitized.notes || "",
         subtotalBGN: subtotalBGN.toString(),
+        discountBGN: discountAmountBGN.toString(),
+        discountCode: discountLabel || "",
         shippingCostBGN: shippingCostBGN.toString(),
       },
       shipping_address_collection: {

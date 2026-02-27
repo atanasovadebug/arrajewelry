@@ -11,6 +11,7 @@ export interface CartItem {
   quantity: number;
   size?: string;
   color?: string;
+  category?: string;
 }
 
 export type ShippingMethod = "office" | "automat" | "address";
