@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { CreditCard, ArrowLeft, ShoppingBag, Truck } from "lucide-react";
+import { CreditCard, ArrowLeft, ShoppingBag, Truck, Tag, Check, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOLD_BGN, SHIPPING_TIME_INFO, SHIPPING_COST_OFFICE_BGN, SHIPPING_COST_AUTOMAT_BGN, SHIPPING_COST_ADDRESS_BGN } from "@/lib/currency";
 import type { ShippingMethod } from "@/contexts/CartContext";
@@ -20,6 +20,13 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedOffice, setSelectedOffice] = useState<SpeedyOffice | null>(null);
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountError, setDiscountError] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{
+    code: string;
+    type: "all" | "moissanite";
+    percent: number;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -62,6 +69,49 @@ export default function CheckoutPage() {
       setSelectedOffice(null);
     }
   };
+
+  const handleApplyDiscount = () => {
+    setDiscountError("");
+    const code = discountCode.trim().toLowerCase();
+
+    if (code === "arra10") {
+      setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
+      setDiscountError("");
+    } else if (code === "radina15") {
+      const hasMoissanite = items.some(
+        (item) => item.category?.toLowerCase() === "moissanite"
+      );
+      if (!hasMoissanite) {
+        setDiscountError("Този код е валиден само за бижута от категория Моасанит");
+        return;
+      }
+      setAppliedDiscount({ code: "radina15", type: "moissanite", percent: 15 });
+      setDiscountError("");
+    } else {
+      setDiscountError("Грешен код, опитайте отново!");
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode("");
+    setDiscountError("");
+  };
+
+  // Calculate discount amount
+  const discountAmount = appliedDiscount
+    ? appliedDiscount.type === "all"
+      ? subtotal * (appliedDiscount.percent / 100)
+      : items
+          .filter((item) => item.category?.toLowerCase() === "moissanite")
+          .reduce((sum, item) => sum + item.price * item.quantity, 0) *
+        (appliedDiscount.percent / 100)
+    : 0;
+
+  const discountedSubtotal = subtotal - discountAmount;
+  const adjustedShippingCost =
+    discountedSubtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : shippingCost;
+  const discountedTotal = discountedSubtotal + adjustedShippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,6 +170,7 @@ export default function CheckoutPage() {
             image: item.image,
             size: item.size,
             color: item.color,
+            category: item.category,
           })),
           customerEmail: formData.email,
           customerName: formData.name,
@@ -127,6 +178,7 @@ export default function CheckoutPage() {
           shippingAddress,
           shippingMethod: shippingMethod,
           notes: formData.notes,
+          discountCode: appliedDiscount?.code || null,
           successUrl: `${window.location.origin}/order-success`,
           cancelUrl: `${window.location.origin}/checkout`,
         },
@@ -369,19 +421,77 @@ export default function CheckoutPage() {
                     <span className="text-muted-foreground">Междинна сума</span>
                     <span>{formatDualCurrency(subtotal)}</span>
                   </div>
+
+                  {/* Discount Code Input */}
+                  {!appliedDiscount ? (
+                    <div className="py-2">
+                      <Label className="text-sm text-muted-foreground flex items-center gap-1 mb-1.5">
+                        <Tag className="h-3.5 w-3.5" />
+                        Код за отстъпка
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={discountCode}
+                          onChange={(e) => {
+                            setDiscountCode(e.target.value);
+                            setDiscountError("");
+                          }}
+                          placeholder="Въведете код"
+                          className="h-9 text-sm"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 px-3"
+                          onClick={handleApplyDiscount}
+                          disabled={!discountCode.trim()}
+                        >
+                          Приложи
+                        </Button>
+                      </div>
+                      {discountError && (
+                        <p className="text-xs text-destructive mt-1">{discountError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between py-1">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-green-600">
+                          {appliedDiscount.code.toUpperCase()} (−{appliedDiscount.percent}%)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveDiscount}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Отстъпка</span>
+                      <span>−{formatDualCurrency(discountAmount)}</span>
+                    </div>
+                  )}
+
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">
                       Доставка ({shippingMethod === "automat" ? "Speedy Автомат" : shippingMethod === "office" ? "Speedy Офис" : "Speedy до адрес"})
                     </span>
                     <span>
-                      {shippingCost === 0 ? (
+                      {adjustedShippingCost === 0 ? (
                         <span className="text-green-600">Безплатна</span>
                       ) : (
-                        formatDualCurrency(shippingCost)
+                        formatDualCurrency(adjustedShippingCost)
                       )}
                     </span>
                   </div>
-                  {shippingCost > 0 && (
+                  {adjustedShippingCost > 0 && (
                     <p className="text-xs text-muted-foreground">
                       Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} € / {FREE_SHIPPING_THRESHOLD_BGN.toFixed(2)} лв.
                     </p>
@@ -389,7 +499,7 @@ export default function CheckoutPage() {
                   <p className="text-xs text-primary font-medium">{SHIPPING_TIME_INFO}</p>
                   <div className="flex justify-between font-semibold pt-2 border-t">
                     <span>Общо</span>
-                    <span>{formatDualCurrency(total)}</span>
+                    <span>{formatDualCurrency(discountedTotal)}</span>
                   </div>
                 </div>
 

@@ -158,6 +158,7 @@ export default function ProductPage() {
       price: Number(product.price),
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
+      category: product.category,
     });
     toast({
       title: "Добавено в количката",
@@ -211,6 +212,7 @@ export default function ProductPage() {
       price: Number(product.price),
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
+      category: product.category,
     });
     navigate("/checkout");
   };
