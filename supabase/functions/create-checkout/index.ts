@@ -37,6 +37,69 @@ interface CheckoutRequest {
   cancelUrl: string;
 }
 
+const WOMENSDAY_START_DATE = "2026-03-05";
+const WOMENSDAY_END_DATE = "2026-03-09";
+
+const CYRILLIC_TO_LATIN_MAP: Record<string, string> = {
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ж: "zh",
+  з: "z",
+  и: "i",
+  й: "y",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ф: "f",
+  х: "h",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "sht",
+  ъ: "a",
+  ь: "y",
+  ю: "yu",
+  я: "ya",
+};
+
+function normalizeTextValue(value: string | undefined | null): string {
+  return Array.from(String(value ?? "").trim().toLowerCase())
+    .map((char) => CYRILLIC_TO_LATIN_MAP[char] ?? char)
+    .join("")
+    .replace(/[\s-]+/g, "");
+}
+
+function normalizePromoCode(value: string | undefined | null): string {
+  return normalizeTextValue(value);
+}
+
+function isMoissaniteCategory(value: string | undefined | null): boolean {
+  const normalizedCategory = normalizeTextValue(value);
+  return ["moissanite", "moisanite", "moysanit", "moasanit"].includes(normalizedCategory);
+}
+
+function isWomensDayActive(): boolean {
+  const sofiaDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Sofia",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+  return sofiaDate >= WOMENSDAY_START_DATE && sofiaDate <= WOMENSDAY_END_DATE;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   const corsResponse = handleCorsPrelight(req);
@@ -44,9 +107,6 @@ serve(async (req) => {
   
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
-
-  const WOMENSDAY_START = new Date("2026-03-05T00:00:00+02:00");
-  const WOMENSDAY_END = new Date("2026-03-10T00:00:00+02:00");
 
   // Check rate limit
   const clientIP = getClientIP(req);
@@ -77,12 +137,10 @@ serve(async (req) => {
     let discountLabel = "";
 
     if (discountCode) {
-      const code = String(discountCode).trim().toLowerCase();
-      const now = new Date();
+      const code = normalizePromoCode(discountCode);
 
       if (code === "womensday") {
-        const isActive = now >= WOMENSDAY_START && now < WOMENSDAY_END;
-        if (isActive) {
+        if (isWomensDayActive()) {
           discountPercent = 20;
           discountType = "all";
           discountLabel = "Отстъпка WOMENSDAY (−20%)";
@@ -92,9 +150,7 @@ serve(async (req) => {
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
       } else if (code === "radina15") {
-        const hasMoissanite = items.some((item: CartItem) =>
-          item.category?.toLowerCase() === "moissanite"
-        );
+        const hasMoissanite = items.some((item: CartItem) => isMoissaniteCategory(item.category));
         if (hasMoissanite) {
           discountPercent = 15;
           discountType = "moissanite";

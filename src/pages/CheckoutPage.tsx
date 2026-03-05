@@ -15,6 +15,63 @@ import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOL
 import type { ShippingMethod } from "@/contexts/CartContext";
 import { SpeedyOfficeSelector, type SpeedyOffice } from "@/components/SpeedyOfficeSelector";
 
+const WOMENSDAY_START_DATE = "2026-03-05";
+const WOMENSDAY_END_DATE = "2026-03-09";
+
+const CYRILLIC_TO_LATIN_MAP: Record<string, string> = {
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ж: "zh",
+  з: "z",
+  и: "i",
+  й: "y",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ф: "f",
+  х: "h",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "sht",
+  ъ: "a",
+  ь: "y",
+  ю: "yu",
+  я: "ya",
+};
+
+const normalizeTextValue = (value: string) =>
+  Array.from(value.trim().toLowerCase())
+    .map((char) => CYRILLIC_TO_LATIN_MAP[char] ?? char)
+    .join("")
+    .replace(/[\s-]+/g, "");
+
+const normalizePromoCode = (value: string) => normalizeTextValue(value);
+
+const isMoissaniteCategory = (category?: string) => {
+  const normalizedCategory = normalizeTextValue(category ?? "");
+  return ["moissanite", "moisanite", "moysanit", "moasanit"].includes(normalizedCategory);
+};
+
+const getSofiaDateKey = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Sofia",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
 export default function CheckoutPage() {
   const { items, subtotal, shippingCost, total, clearCart, shippingMethod, setShippingMethod } = useCart();
   const navigate = useNavigate();
@@ -27,9 +84,6 @@ export default function CheckoutPage() {
     type: "all" | "moissanite";
     percent: number;
   } | null>(null);
-
-  const WOMENSDAY_START = new Date("2026-03-05T00:00:00+02:00");
-  const WOMENSDAY_END = new Date("2026-03-10T00:00:00+02:00");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -75,11 +129,11 @@ export default function CheckoutPage() {
 
   const handleApplyDiscount = () => {
     setDiscountError("");
-    const code = discountCode.trim().toLowerCase();
-    const now = new Date();
+    const code = normalizePromoCode(discountCode);
+    const sofiaDate = getSofiaDateKey();
 
     if (code === "womensday") {
-      const isActive = now >= WOMENSDAY_START && now < WOMENSDAY_END;
+      const isActive = sofiaDate >= WOMENSDAY_START_DATE && sofiaDate <= WOMENSDAY_END_DATE;
       if (!isActive) {
         setDiscountError("Грешен код, опитайте отново!");
         return;
@@ -92,9 +146,7 @@ export default function CheckoutPage() {
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
     } else if (code === "radina15") {
-      const hasMoissanite = items.some(
-        (item) => item.category?.toLowerCase() === "moissanite"
-      );
+      const hasMoissanite = items.some((item) => isMoissaniteCategory(item.category));
       if (!hasMoissanite) {
         setDiscountError("Този код е валиден само за бижута от категория Моасанит");
         return;
@@ -116,7 +168,7 @@ export default function CheckoutPage() {
     ? appliedDiscount.type === "all"
       ? subtotal * (appliedDiscount.percent / 100)
       : items
-          .filter((item) => item.category?.toLowerCase() === "moissanite")
+          .filter((item) => isMoissaniteCategory(item.category))
           .reduce((sum, item) => sum + item.price * item.quantity, 0) *
         (appliedDiscount.percent / 100)
     : 0;
