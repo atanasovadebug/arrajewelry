@@ -45,6 +45,9 @@ serve(async (req) => {
   const origin = req.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
+  const WOMENSDAY_START = new Date("2026-03-05T00:00:00+02:00");
+  const WOMENSDAY_END = new Date("2026-03-10T00:00:00+02:00");
+
   // Check rate limit
   const clientIP = getClientIP(req);
   const rateLimitResult = checkRateLimit(clientIP, RATE_LIMIT_CONFIG);
@@ -75,7 +78,16 @@ serve(async (req) => {
 
     if (discountCode) {
       const code = String(discountCode).trim().toLowerCase();
-      if (code === "arra10") {
+      const now = new Date();
+
+      if (code === "womensday") {
+        const isActive = now >= WOMENSDAY_START && now < WOMENSDAY_END;
+        if (isActive) {
+          discountPercent = 20;
+          discountType = "all";
+          discountLabel = "Отстъпка WOMENSDAY (−20%)";
+        }
+      } else if (code === "arra10") {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";

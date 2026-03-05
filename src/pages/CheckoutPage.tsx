@@ -28,6 +28,9 @@ export default function CheckoutPage() {
     percent: number;
   } | null>(null);
 
+  const WOMENSDAY_START = new Date("2026-03-05T00:00:00+02:00");
+  const WOMENSDAY_END = new Date("2026-03-10T00:00:00+02:00");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -73,10 +76,21 @@ export default function CheckoutPage() {
   const handleApplyDiscount = () => {
     setDiscountError("");
     const code = discountCode.trim().toLowerCase();
+    const now = new Date();
+
+    if (code === "womensday") {
+      const isActive = now >= WOMENSDAY_START && now < WOMENSDAY_END;
+      if (!isActive) {
+        setDiscountError("Грешен код, опитайте отново!");
+        return;
+      }
+
+      setAppliedDiscount({ code: "womensday", type: "all", percent: 20 });
+      return;
+    }
 
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
-      setDiscountError("");
     } else if (code === "radina15") {
       const hasMoissanite = items.some(
         (item) => item.category?.toLowerCase() === "moissanite"
@@ -86,7 +100,6 @@ export default function CheckoutPage() {
         return;
       }
       setAppliedDiscount({ code: "radina15", type: "moissanite", percent: 15 });
-      setDiscountError("");
     } else {
       setDiscountError("Грешен код, опитайте отново!");
     }
