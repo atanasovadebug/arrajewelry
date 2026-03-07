@@ -8,17 +8,9 @@ export function PromoPopup() {
 
   useEffect(() => {
     // Show only between 2026-03-07 and 2026-03-08 (inclusive), Sofia time
-    const now = new Date();
-    const sofia = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Sofia" }));
-    const start = new Date(2026, 2, 7, 0, 0, 0);
-    const end = new Date(2026, 2, 9, 0, 0, 0); // up to end of March 8
-
-    if (sofia >= start && sofia < end) {
-      const dismissed = sessionStorage.getItem("promo_popup_dismissed");
-      if (!dismissed) {
-        const timer = setTimeout(() => setIsOpen(true), 1500);
-        return () => clearTimeout(timer);
-      }
+    const dismissed = sessionStorage.getItem("promo_popup_dismissed");
+    if (!dismissed) {
+      setIsOpen(true);
     }
   }, []);
 
