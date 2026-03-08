@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, ChevronDown } from "lucide-react";
+import { Menu, X, Instagram, ChevronDown, User, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CartDrawer } from "./CartDrawer";
+import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
   {
