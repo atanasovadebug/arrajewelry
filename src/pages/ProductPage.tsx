@@ -489,7 +489,7 @@ export default function ProductPage() {
             )}
 
             {/* Show selected variant stock status */}
-            {hasVariants && selectedSize && selectedType && (
+            {hasVariants && effectiveSelectedSize && selectedType && (
               <div className={`p-3 rounded-md text-sm ${
                 isSelectedVariantInStock 
                   ? 'bg-green-50 text-green-700 border border-green-200' 
