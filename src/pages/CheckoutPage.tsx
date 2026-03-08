@@ -15,8 +15,6 @@ import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR, FREE_SHIPPING_THRESHOL
 import type { ShippingMethod } from "@/contexts/CartContext";
 import { SpeedyOfficeSelector, type SpeedyOffice } from "@/components/SpeedyOfficeSelector";
 
-const WOMENSDAY_START_DATE = "2026-03-05";
-const WOMENSDAY_END_DATE = "2026-03-09";
 
 const CYRILLIC_TO_LATIN_MAP: Record<string, string> = {
   а: "a",
