@@ -123,12 +123,12 @@ export default function AuthPage() {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-heading">
-              {isLogin ? 'Вход в админ панел' : 'Регистрация'}
+              {isLogin ? 'Вход в акаунт' : 'Създаване на акаунт'}
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? 'Въведете данните си за достъп'
-                : 'Създайте нов акаунт'}
+                ? 'Въведете имейл и парола, за да влезете'
+                : 'Регистрирайте се, за да се възползвате от всички функции'}
             </CardDescription>
           </CardHeader>
           <CardContent>
