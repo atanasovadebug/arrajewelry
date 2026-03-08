@@ -360,9 +360,15 @@ export default function ProductPage() {
                     variant="outline"
                     size="icon"
                     className="btn-elevated"
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={() => {
+                      if (!user) {
+                        setShowAuthDialog(true);
+                        return;
+                      }
+                      toggleFavorite.mutate(productId!);
+                    }}
                   >
-                    <Heart className={`w-5 h-5 icon-subtle ${isFavorite ? "fill-primary text-primary" : ""}`} />
+                    <Heart className={`w-5 h-5 icon-subtle ${productId && isFavorite(productId) ? "fill-primary text-primary" : ""}`} />
                   </Button>
                   <Button variant="outline" size="icon" className="btn-elevated" onClick={handleShare}>
                     <Share2 className="w-5 h-5 icon-subtle" />
