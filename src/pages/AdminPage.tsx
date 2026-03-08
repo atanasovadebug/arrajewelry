@@ -1303,6 +1303,9 @@ export default function AdminPage() {
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}
