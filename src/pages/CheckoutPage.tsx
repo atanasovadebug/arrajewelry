@@ -132,17 +132,6 @@ export default function CheckoutPage() {
     const code = normalizePromoCode(discountCode);
     const sofiaDate = getSofiaDateKey();
 
-    if (code === "womensday") {
-      const isActive = sofiaDate >= WOMENSDAY_START_DATE && sofiaDate <= WOMENSDAY_END_DATE;
-      if (!isActive) {
-        setDiscountError("Грешен код, опитайте отново!");
-        return;
-      }
-
-      setAppliedDiscount({ code: "womensday", type: "all", percent: 20 });
-      return;
-    }
-
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
     } else if (code === "radina15") {

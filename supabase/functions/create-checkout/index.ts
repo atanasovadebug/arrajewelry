@@ -127,13 +127,7 @@ serve(async (req) => {
     if (discountCode) {
       const code = normalizePromoCode(discountCode);
 
-      if (code === "womensday") {
-        if (isWomensDayActive()) {
-          discountPercent = 20;
-          discountType = "all";
-          discountLabel = "Отстъпка WOMENSDAY (−20%)";
-        }
-      } else if (code === "arra10") {
+      if (code === "arra10") {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
