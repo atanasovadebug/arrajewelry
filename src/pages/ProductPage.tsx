@@ -113,7 +113,6 @@ export default function ProductPage() {
   const selectedVariantStock = effectiveSelectedSize && selectedType 
     ? getVariantStock(effectiveSelectedSize, selectedType) 
     : 0;
-    : 0;
   const isSelectedVariantInStock = selectedVariantStock > 0;
 
   const handleAddToCart = () => {
