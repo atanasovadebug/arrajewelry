@@ -200,7 +200,7 @@ export default function AuthPage() {
         </Card>
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          Забележка: След регистрация, администратор трябва да ви даде права за достъп.
+          С регистрацията приемате нашите условия за ползване.
         </p>
       </div>
     </div>
