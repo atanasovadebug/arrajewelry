@@ -234,7 +234,41 @@ export default function AdminPage() {
         console.error(error);
       }
     } else {
-      setOrders((data || []) as Order[]);
+      // Deduplicate orders by session_id - keep the latest one per session
+      const allOrders = (data || []) as Order[];
+      const seen = new Map<string, Order>();
+      const deduped: Order[] = [];
+      for (const order of allOrders) {
+        const key = (order as any).session_id;
+        if (key && seen.has(key)) continue;
+        if (key) seen.set(key, order);
+        deduped.push(order);
+      }
+      
+      // For orders with total=0, compute total from order_items
+      const zeroTotalIds = deduped.filter(o => o.total === 0).map(o => o.id);
+      if (zeroTotalIds.length > 0) {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('order_id, product_price, quantity')
+          .in('order_id', zeroTotalIds);
+        
+        if (items) {
+          const totalsMap = new Map<string, number>();
+          for (const item of items) {
+            const current = totalsMap.get(item.order_id) || 0;
+            totalsMap.set(item.order_id, current + item.product_price * item.quantity);
+          }
+          for (const order of deduped) {
+            if (order.total === 0 && totalsMap.has(order.id)) {
+              order.subtotal = totalsMap.get(order.id)!;
+              order.total = order.subtotal + order.shipping_cost;
+            }
+          }
+        }
+      }
+      
+      setOrders(deduped);
     }
     setOrdersLoading(false);
   };
