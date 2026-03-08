@@ -396,11 +396,6 @@ export default function AdminPage() {
     setStock(product.stock.toString());
     setImages(product.images || []);
     const specs = product.specifications as Record<string, unknown> | null;
-    // Extract available_sizes and available_types from specs if present
-    const sizesFromSpecs = specs?.available_sizes;
-    const typesFromSpecs = specs?.available_types;
-    setSelectedSizes(Array.isArray(sizesFromSpecs) ? sizesFromSpecs : []);
-    setSelectedTypes(Array.isArray(typesFromSpecs) ? typesFromSpecs : []);
     setSpecifications(
       Object.entries(specs || {})
         .filter(([key]) => key !== 'available_sizes' && key !== 'available_types')
@@ -413,7 +408,14 @@ export default function AdminPage() {
       .select('size, color, stock')
       .eq('product_id', product.id);
     
-    setProductVariants(variants || []);
+    const loadedVariants = variants || [];
+    setProductVariants(loadedVariants);
+    
+    // Derive selectedSizes and selectedTypes from actual variants
+    const sizesFromVariants = [...new Set(loadedVariants.map(v => v.size))].filter(s => s !== 'one-size');
+    const typesFromVariants = [...new Set(loadedVariants.map(v => v.color))];
+    setSelectedSizes(sizesFromVariants);
+    setSelectedTypes(typesFromVariants);
     setIsFormOpen(true);
   };
 
