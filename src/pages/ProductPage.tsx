@@ -569,14 +569,6 @@ export default function ProductPage() {
                     <p className="text-sm text-muted-foreground">Сигурно онлайн плащане</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start gap-3">
-                  <Building2 className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
-                  <div>
-                    <p className="font-medium">Банков превод</p>
-                    <p className="text-sm text-muted-foreground">Директен превод по сметка</p>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
