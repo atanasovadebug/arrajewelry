@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Instagram, ChevronDown } from "lucide-react";
+import { Menu, X, Instagram, ChevronDown, User, LogIn } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { CartDrawer } from "./CartDrawer";
+import { useAuth } from "@/contexts/AuthContext";
 
 const categories = [
   {
@@ -57,6 +58,7 @@ const categories = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const { user } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -103,6 +105,23 @@ export function Header() {
           {/* Cart, Social & Mobile Menu */}
           <div className="flex items-center gap-2">
             <CartDrawer />
+            {user ? (
+              <Link
+                to="/profile"
+                className="text-foreground/70 hover:text-primary transition-colors p-2"
+                aria-label="Профил"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="text-foreground/70 hover:text-primary transition-colors p-2"
+                aria-label="Вход"
+              >
+                <LogIn className="w-5 h-5" />
+              </Link>
+            )}
             <a
               href="https://instagram.com/arra_jewelry_vt"
               target="_blank"

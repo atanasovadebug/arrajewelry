@@ -8,10 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavorites } from "@/hooks/useFavorites";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
 import { RingSizeGuide } from "@/components/RingSizeGuide";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const categoryNames: Record<string, string> = {
   moissanite: "Мойсанит",
@@ -27,9 +36,11 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   // Color/Finish labels
   const colorLabels: Record<string, string> = {
@@ -349,9 +360,15 @@ export default function ProductPage() {
                     variant="outline"
                     size="icon"
                     className="btn-elevated"
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={() => {
+                      if (!user) {
+                        setShowAuthDialog(true);
+                        return;
+                      }
+                      toggleFavorite.mutate(productId!);
+                    }}
                   >
-                    <Heart className={`w-5 h-5 icon-subtle ${isFavorite ? "fill-primary text-primary" : ""}`} />
+                    <Heart className={`w-5 h-5 icon-subtle ${productId && isFavorite(productId) ? "fill-primary text-primary" : ""}`} />
                   </Button>
                   <Button variant="outline" size="icon" className="btn-elevated" onClick={handleShare}>
                     <Share2 className="w-5 h-5 icon-subtle" />
@@ -590,6 +607,28 @@ export default function ProductPage() {
           </Link>
         </motion.div>
       </div>
+
+      {/* Auth dialog for unauthenticated favorite */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Необходима е регистрация</DialogTitle>
+            <DialogDescription>
+              За да добавите продукт към любими, моля регистрирайте се или влезте в акаунта си.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button asChild className="flex-1">
+              <Link to="/auth" onClick={() => setShowAuthDialog(false)}>
+                Вход / Регистрация
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={() => setShowAuthDialog(false)} className="flex-1">
+              Затвори
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
