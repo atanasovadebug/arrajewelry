@@ -210,6 +210,21 @@ export function Header() {
                   </AnimatePresence>
                 </div>
               ))}
+
+              {user && (
+                <div className="border-t border-border">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full py-3 font-body font-medium text-destructive"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Изход
+                  </button>
+                </div>
+              )}
             </nav>
           </motion.div>
         )}
