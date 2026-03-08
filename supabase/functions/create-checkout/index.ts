@@ -136,7 +136,7 @@ serve(async (req) => {
         if (hasMoissanite) {
           discountPercent = 15;
           discountType = "moissanite";
-          discountLabel = "Отстъпка RADINA15 (−15% Моасанит)";
+          discountLabel = "Отстъпка RADINA15 (−15% Мойсанит)";
         }
         // Invalid or inapplicable code is silently ignored server-side
       }

@@ -5,7 +5,7 @@ const categories = [
   { name: "Ръчна изработка", href: "/category/handmade" },
   { name: "Неръждаема стомана", href: "/category/stainless-steel" },
   { name: "Сребро", href: "/category/silver" },
-  { name: "Моасанит", href: "/category/moissanite" },
+  { name: "Мойсанит", href: "/category/moissanite" },
 ];
 
 export function Footer() {
