@@ -8,10 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useFavorites } from "@/hooks/useFavorites";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
 import { RingSizeGuide } from "@/components/RingSizeGuide";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const categoryNames: Record<string, string> = {
   moissanite: "Мойсанит",
