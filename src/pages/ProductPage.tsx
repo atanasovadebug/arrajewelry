@@ -407,9 +407,12 @@ export default function ProductPage() {
             {/* Size Selection - Based on product variants */}
             {requiresSize && availableSizesFromVariants.length > 0 && (
               <div className="space-y-3">
-                <label className="text-sm font-medium">
-                  {product.subcategory === 'rings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">
+                    {product.subcategory === 'rings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
+                  </label>
+                  {product.subcategory === 'rings' && <RingSizeGuide />}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {availableSizesFromVariants.map((size) => {
                     const sizeStock = selectedType ? getVariantStock(size, selectedType) : getSizeStock(size);
