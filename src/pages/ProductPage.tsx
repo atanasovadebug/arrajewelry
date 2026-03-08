@@ -110,8 +110,9 @@ export default function ProductPage() {
   const effectiveSelectedSize = hasOnlyOneSize ? 'one-size' : selectedSize;
 
   // Check if selected combination is in stock
-  const selectedVariantStock = selectedSize && selectedType 
-    ? getVariantStock(selectedSize, selectedType) 
+  const selectedVariantStock = effectiveSelectedSize && selectedType 
+    ? getVariantStock(effectiveSelectedSize, selectedType) 
+    : 0;
     : 0;
   const isSelectedVariantInStock = selectedVariantStock > 0;
 
