@@ -607,6 +607,28 @@ export default function ProductPage() {
           </Link>
         </motion.div>
       </div>
+
+      {/* Auth dialog for unauthenticated favorite */}
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Необходима е регистрация</DialogTitle>
+            <DialogDescription>
+              За да добавите продукт към любими, моля регистрирайте се или влезте в акаунта си.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button asChild className="flex-1">
+              <Link to="/auth" onClick={() => setShowAuthDialog(false)}>
+                Вход / Регистрация
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={() => setShowAuthDialog(false)} className="flex-1">
+              Затвори
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
