@@ -507,8 +507,20 @@ export default function AdminPage() {
       specsObject.available_types = selectedTypes;
     }
 
+    // Build complete variants list from selections
+    const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces';
+    const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
+    
+    const allVariants: Array<{ size: string; color: string; stock: number }> = [];
+    for (const size of effectiveSizes) {
+      for (const color of selectedTypes) {
+        const existing = productVariants.find(v => v.size === size && v.color === color);
+        allVariants.push({ size, color, stock: existing?.stock ?? 0 });
+      }
+    }
+    
     // Calculate total stock from variants
-    const totalStock = productVariants.reduce((sum, v) => sum + v.stock, 0);
+    const totalStock = allVariants.reduce((sum, v) => sum + v.stock, 0);
 
     const productData = {
       name: name.trim(),
