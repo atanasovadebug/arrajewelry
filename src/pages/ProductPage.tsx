@@ -275,7 +275,7 @@ export default function ProductPage() {
   
   // Disable add to cart if variant product and no valid selection or out of stock
   const isAddToCartDisabled = hasVariants 
-    ? (!selectedSize || !selectedType || !isSelectedVariantInStock)
+    ? (!effectiveSelectedSize || !selectedType || !isSelectedVariantInStock)
     : !inStock;
 
   return (
