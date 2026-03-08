@@ -234,7 +234,41 @@ export default function AdminPage() {
         console.error(error);
       }
     } else {
-      setOrders((data || []) as Order[]);
+      // Deduplicate orders by session_id - keep the latest one per session
+      const allOrders = (data || []) as Order[];
+      const seen = new Map<string, Order>();
+      const deduped: Order[] = [];
+      for (const order of allOrders) {
+        const key = (order as any).session_id;
+        if (key && seen.has(key)) continue;
+        if (key) seen.set(key, order);
+        deduped.push(order);
+      }
+      
+      // For orders with total=0, compute total from order_items
+      const zeroTotalIds = deduped.filter(o => o.total === 0).map(o => o.id);
+      if (zeroTotalIds.length > 0) {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('order_id, product_price, quantity')
+          .in('order_id', zeroTotalIds);
+        
+        if (items) {
+          const totalsMap = new Map<string, number>();
+          for (const item of items) {
+            const current = totalsMap.get(item.order_id) || 0;
+            totalsMap.set(item.order_id, current + item.product_price * item.quantity);
+          }
+          for (const order of deduped) {
+            if (order.total === 0 && totalsMap.has(order.id)) {
+              order.subtotal = totalsMap.get(order.id)!;
+              order.total = order.subtotal + order.shipping_cost;
+            }
+          }
+        }
+      }
+      
+      setOrders(deduped);
     }
     setOrdersLoading(false);
   };
@@ -330,6 +364,24 @@ export default function AdminPage() {
       if (selectedOrder?.id === orderId) {
         setSelectedOrder({ ...selectedOrder, status: newStatus });
       }
+    }
+  };
+
+  const deleteOrder = async (orderId: string) => {
+    if (!confirm('Сигурни ли сте, че искате да изтриете тази поръчка?')) return;
+
+    // Delete order items first
+    await supabase.from('order_items').delete().eq('order_id', orderId);
+    
+    const { error } = await supabase.from('orders').delete().eq('id', orderId);
+
+    if (error) {
+      toast.error('Грешка при изтриване на поръчката');
+      if (import.meta.env.DEV) console.error(error);
+    } else {
+      toast.success('Поръчката е изтрита');
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      if (selectedOrder?.id === orderId) setSelectedOrder(null);
     }
   };
 
@@ -1196,6 +1248,10 @@ export default function AdminPage() {
                         <SelectItem value="cancelled">Отказана</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button variant="destructive" size="sm" onClick={() => deleteOrder(selectedOrder.id)} className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Изтрий
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -1242,10 +1298,15 @@ export default function AdminPage() {
                                   minute: '2-digit'
                                 })}
                               </p>
-                              <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
-                                <Eye className="h-4 w-4" />
-                                Детайли
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
+                                  <Eye className="h-4 w-4" />
+                                  Детайли
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => deleteOrder(order.id)} className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>

@@ -101,6 +101,27 @@ serve(async (req) => {
       }
     }
 
+    // Check if order already exists for this session (prevent duplicates)
+    const { data: existingOrder } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("session_id", sessionId)
+      .maybeSingle();
+
+    if (existingOrder) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          orderId: existingOrder.id,
+          paymentStatus: "paid"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
     // Retrieve the checkout session from Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
@@ -118,9 +139,10 @@ serve(async (req) => {
 
     // Extract and sanitize metadata from Stripe session
     const metadata = session.metadata || {};
-    const subtotal = parseFloat(metadata.subtotal || "0");
-    const shippingCost = parseFloat(metadata.shippingCost || "0");
-    const total = subtotal + shippingCost;
+    const subtotal = parseFloat(metadata.subtotalBGN || metadata.subtotal || "0");
+    const shippingCost = parseFloat(metadata.shippingCostBGN || metadata.shippingCost || "0");
+    const discountAmount = parseFloat(metadata.discountBGN || "0");
+    const total = subtotal - discountAmount + shippingCost;
 
     // Sanitize all customer data before database insertion
     const sanitizedCustomerName = sanitizeString(metadata.customerName, MAX_NAME_LENGTH);
