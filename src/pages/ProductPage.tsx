@@ -102,10 +102,12 @@ export default function ProductPage() {
 
   // Check if product has variants
   const hasVariants = productVariants && productVariants.length > 0;
-  const requiresSize = hasVariants && availableSizesFromVariants.length > 0 && 
-    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
-  const requiresColor = hasVariants && availableColorsFromVariants.length > 0 && 
-    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+  const hasOnlyOneSize = availableSizesFromVariants.length === 1 && availableSizesFromVariants[0] === 'one-size';
+  const requiresSize = hasVariants && availableSizesFromVariants.length > 0 && !hasOnlyOneSize;
+  const requiresColor = hasVariants && availableColorsFromVariants.length > 0;
+
+  // Auto-select "one-size" for products that don't need size selection
+  const effectiveSelectedSize = hasOnlyOneSize ? 'one-size' : selectedSize;
 
   // Check if selected combination is in stock
   const selectedVariantStock = selectedSize && selectedType 
