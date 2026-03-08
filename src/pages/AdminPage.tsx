@@ -1294,13 +1294,15 @@ export default function AdminPage() {
                                   minute: '2-digit'
                                 })}
                               </p>
-                              <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
-                                <Eye className="h-4 w-4" />
-                                Детайли
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
+                              <div className="flex gap-2">
+                                <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
+                                  <Eye className="h-4 w-4" />
+                                  Детайли
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => deleteOrder(order.id)} className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
                       ))}
                     </div>
                   )}
