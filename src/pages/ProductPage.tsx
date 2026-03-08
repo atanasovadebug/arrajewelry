@@ -458,7 +458,7 @@ export default function ProductPage() {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {availableColorsFromVariants.map((color) => {
-                    const colorStock = selectedSize ? getVariantStock(selectedSize, color) : getColorStock(color);
+                    const colorStock = effectiveSelectedSize ? getVariantStock(effectiveSelectedSize, color) : getColorStock(color);
                     const isOutOfStock = colorStock === 0;
                     const isSelected = selectedType === color;
                     
