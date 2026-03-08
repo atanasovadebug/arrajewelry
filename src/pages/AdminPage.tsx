@@ -553,10 +553,10 @@ export default function AdminPage() {
           .delete()
           .eq('product_id', editingProduct.id);
         
-        if (productVariants.length > 0) {
+        if (allVariants.length > 0) {
           const { error: variantError } = await supabase
             .from('product_variants')
-            .insert(productVariants.map(v => ({
+            .insert(allVariants.map(v => ({
               product_id: editingProduct.id,
               size: v.size,
               color: v.color,
