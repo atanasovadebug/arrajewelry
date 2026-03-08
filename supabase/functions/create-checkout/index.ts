@@ -87,16 +87,6 @@ function isMoissaniteCategory(value: string | undefined | null): boolean {
   return ["moissanite", "moisanite", "moysanit", "moasanit"].includes(normalizedCategory);
 }
 
-function isWomensDayActive(): boolean {
-  const sofiaDate = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Sofia",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-
-  return sofiaDate >= WOMENSDAY_START_DATE && sofiaDate <= WOMENSDAY_END_DATE;
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
