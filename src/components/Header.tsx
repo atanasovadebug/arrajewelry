@@ -105,6 +105,23 @@ export function Header() {
           {/* Cart, Social & Mobile Menu */}
           <div className="flex items-center gap-2">
             <CartDrawer />
+            {user ? (
+              <Link
+                to="/profile"
+                className="text-foreground/70 hover:text-primary transition-colors p-2"
+                aria-label="Профил"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            ) : (
+              <Link
+                to="/auth"
+                className="text-foreground/70 hover:text-primary transition-colors p-2"
+                aria-label="Вход"
+              >
+                <LogIn className="w-5 h-5" />
+              </Link>
+            )}
             <a
               href="https://instagram.com/arra_jewelry_vt"
               target="_blank"
