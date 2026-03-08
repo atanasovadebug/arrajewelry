@@ -199,7 +199,7 @@ export default function ProductPage() {
     // Build product name with size and color
     let productName = product.name;
     const extras: string[] = [];
-    if (selectedSize) {
+    if (selectedSize && selectedSize !== 'one-size') {
       extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
