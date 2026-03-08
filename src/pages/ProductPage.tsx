@@ -11,6 +11,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDualCurrency, FREE_SHIPPING_THRESHOLD_EUR } from "@/lib/currency";
+import { RingSizeGuide } from "@/components/RingSizeGuide";
 
 const categoryNames: Record<string, string> = {
   moissanite: "Мойсанит",
