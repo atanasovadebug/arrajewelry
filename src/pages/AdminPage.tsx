@@ -1248,6 +1248,10 @@ export default function AdminPage() {
                         <SelectItem value="cancelled">Отказана</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button variant="destructive" size="sm" onClick={() => deleteOrder(selectedOrder.id)} className="gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Изтрий
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
