@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, Instagram, ChevronDown, User, LogIn } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, Instagram, ChevronDown, User, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CartDrawer } from "./CartDrawer";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const categories = [
   {
@@ -58,7 +59,14 @@ const categories = [
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("Успешно излязохте от акаунта");
+    navigate("/");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -105,22 +113,21 @@ export function Header() {
           {/* Cart, Social & Mobile Menu */}
           <div className="flex items-center gap-2">
             <CartDrawer />
-            {user ? (
-              <Link
-                to="/profile"
+            <Link
+              to={user ? "/profile" : "/auth"}
+              className="text-foreground/70 hover:text-primary transition-colors p-2"
+              aria-label={user ? "Профил" : "Вход"}
+            >
+              <User className="w-5 h-5" />
+            </Link>
+            {user && (
+              <button
+                onClick={handleLogout}
                 className="text-foreground/70 hover:text-primary transition-colors p-2"
-                aria-label="Профил"
+                aria-label="Изход"
               >
-                <LogIn className="w-5 h-5" />
-              </Link>
-            ) : (
-              <Link
-                to="/auth"
-                className="text-foreground/70 hover:text-primary transition-colors p-2"
-                aria-label="Вход"
-              >
-                <User className="w-5 h-5" />
-              </Link>
+                <LogOut className="w-5 h-5" />
+              </button>
             )}
             <a
               href="https://instagram.com/arra_jewelry_vt"
@@ -203,6 +210,21 @@ export function Header() {
                   </AnimatePresence>
                 </div>
               ))}
+
+              {user && (
+                <div className="border-t border-border">
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2 w-full py-3 font-body font-medium text-destructive"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Изход
+                  </button>
+                </div>
+              )}
             </nav>
           </motion.div>
         )}
