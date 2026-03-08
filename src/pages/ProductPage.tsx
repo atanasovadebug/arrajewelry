@@ -41,8 +41,6 @@ export default function ProductPage() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [selectedSize, setSelectedSize] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<string>("");
 
   // Color/Finish labels
   const colorLabels: Record<string, string> = {
