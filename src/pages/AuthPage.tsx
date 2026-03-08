@@ -28,7 +28,7 @@ export default function AuthPage() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/admin');
+        navigate('/profile');
       }
       setCheckingAuth(false);
     };
