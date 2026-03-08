@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, Heart, Share2, Truck, CreditCard, Building2 } from "lucide-react";
+import { ChevronLeft, Heart, Share2, Truck, CreditCard } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -567,14 +567,6 @@ export default function ProductPage() {
                   <div>
                     <p className="font-medium">Дебитна/Кредитна карта</p>
                     <p className="text-sm text-muted-foreground">Сигурно онлайн плащане</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Building2 className="w-5 h-5 text-primary mt-0.5 icon-subtle" />
-                  <div>
-                    <p className="font-medium">Банков превод</p>
-                    <p className="text-sm text-muted-foreground">Директен превод по сметка</p>
                   </div>
                 </div>
               </div>
