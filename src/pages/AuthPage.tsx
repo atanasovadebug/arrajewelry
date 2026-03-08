@@ -28,7 +28,7 @@ export default function AuthPage() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/admin');
+        navigate('/profile');
       }
       setCheckingAuth(false);
     };
@@ -37,7 +37,7 @@ export default function AuthPage() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate('/admin');
+        navigate('/profile');
       }
     });
 
@@ -78,7 +78,7 @@ export default function AuthPage() {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/admin`,
+            emailRedirectTo: `${window.location.origin}/profile`,
           },
         });
 
@@ -123,12 +123,12 @@ export default function AuthPage() {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-heading">
-              {isLogin ? 'Вход в админ панел' : 'Регистрация'}
+              {isLogin ? 'Вход в акаунт' : 'Създаване на акаунт'}
             </CardTitle>
             <CardDescription>
               {isLogin
-                ? 'Въведете данните си за достъп'
-                : 'Създайте нов акаунт'}
+                ? 'Въведете имейл и парола, за да влезете'
+                : 'Регистрирайте се, за да се възползвате от всички функции'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -200,7 +200,7 @@ export default function AuthPage() {
         </Card>
 
         <p className="text-xs text-center text-muted-foreground mt-4">
-          Забележка: След регистрация, администратор трябва да ви даде права за достъп.
+          С регистрацията приемате нашите условия за ползване.
         </p>
       </div>
     </div>

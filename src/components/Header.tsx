@@ -111,7 +111,7 @@ export function Header() {
                 className="text-foreground/70 hover:text-primary transition-colors p-2"
                 aria-label="Профил"
               >
-                <User className="w-5 h-5" />
+                <LogIn className="w-5 h-5" />
               </Link>
             ) : (
               <Link
@@ -119,7 +119,7 @@ export function Header() {
                 className="text-foreground/70 hover:text-primary transition-colors p-2"
                 aria-label="Вход"
               >
-                <LogIn className="w-5 h-5" />
+                <User className="w-5 h-5" />
               </Link>
             )}
             <a
