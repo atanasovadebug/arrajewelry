@@ -122,7 +122,7 @@ export default function AdminPage() {
       case 'necklaces':
         return ['35', '36', '36.5', '37', '38', '39', '40', '41', '42'];
       case 'bracelets':
-        return ['14', '15', '16', '17', '18', '19', '20', '21'];
+        return ['14', '15', '15.5', '16', '16.5', '17', '18', '19', '20', '21'];
       default:
         return [];
     }
