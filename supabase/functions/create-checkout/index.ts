@@ -37,8 +37,6 @@ interface CheckoutRequest {
   cancelUrl: string;
 }
 
-const WOMENSDAY_START_DATE = "2026-03-05";
-const WOMENSDAY_END_DATE = "2026-03-09";
 
 const CYRILLIC_TO_LATIN_MAP: Record<string, string> = {
   а: "a",
@@ -89,16 +87,6 @@ function isMoissaniteCategory(value: string | undefined | null): boolean {
   return ["moissanite", "moisanite", "moysanit", "moasanit"].includes(normalizedCategory);
 }
 
-function isWomensDayActive(): boolean {
-  const sofiaDate = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Sofia",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-
-  return sofiaDate >= WOMENSDAY_START_DATE && sofiaDate <= WOMENSDAY_END_DATE;
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -139,13 +127,7 @@ serve(async (req) => {
     if (discountCode) {
       const code = normalizePromoCode(discountCode);
 
-      if (code === "womensday") {
-        if (isWomensDayActive()) {
-          discountPercent = 20;
-          discountType = "all";
-          discountLabel = "Отстъпка WOMENSDAY (−20%)";
-        }
-      } else if (code === "arra10") {
+      if (code === "arra10") {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
