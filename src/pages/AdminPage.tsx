@@ -587,10 +587,10 @@ export default function AdminPage() {
         }
       } else {
         // Insert variants for the new product
-        if (productVariants.length > 0 && newProduct) {
+        if (allVariants.length > 0 && newProduct) {
           const { error: variantError } = await supabase
             .from('product_variants')
-            .insert(productVariants.map(v => ({
+            .insert(allVariants.map(v => ({
               product_id: newProduct.id,
               size: v.size,
               color: v.color,
