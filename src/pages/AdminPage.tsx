@@ -367,6 +367,24 @@ export default function AdminPage() {
     }
   };
 
+  const deleteOrder = async (orderId: string) => {
+    if (!confirm('Сигурни ли сте, че искате да изтриете тази поръчка?')) return;
+
+    // Delete order items first
+    await supabase.from('order_items').delete().eq('order_id', orderId);
+    
+    const { error } = await supabase.from('orders').delete().eq('id', orderId);
+
+    if (error) {
+      toast.error('Грешка при изтриване на поръчката');
+      if (import.meta.env.DEV) console.error(error);
+    } else {
+      toast.success('Поръчката е изтрита');
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+      if (selectedOrder?.id === orderId) setSelectedOrder(null);
+    }
+  };
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'paid':
