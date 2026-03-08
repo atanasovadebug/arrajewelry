@@ -36,7 +36,11 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [selectedType, setSelectedType] = useState<string>("");
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const { user } = useAuth();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
 
