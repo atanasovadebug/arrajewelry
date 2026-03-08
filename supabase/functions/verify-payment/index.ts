@@ -101,6 +101,27 @@ serve(async (req) => {
       }
     }
 
+    // Check if order already exists for this session (prevent duplicates)
+    const { data: existingOrder } = await supabase
+      .from("orders")
+      .select("id")
+      .eq("session_id", sessionId)
+      .maybeSingle();
+
+    if (existingOrder) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          orderId: existingOrder.id,
+          paymentStatus: "paid"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
     // Retrieve the checkout session from Stripe
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
