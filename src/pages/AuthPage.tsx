@@ -37,7 +37,7 @@ export default function AuthPage() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        navigate('/admin');
+        navigate('/profile');
       }
     });
 
