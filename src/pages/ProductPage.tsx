@@ -102,14 +102,16 @@ export default function ProductPage() {
 
   // Check if product has variants
   const hasVariants = productVariants && productVariants.length > 0;
-  const requiresSize = hasVariants && availableSizesFromVariants.length > 0 && 
-    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
-  const requiresColor = hasVariants && availableColorsFromVariants.length > 0 && 
-    (product?.subcategory === 'bracelets' || product?.subcategory === 'necklaces' || product?.subcategory === 'rings');
+  const hasOnlyOneSize = availableSizesFromVariants.length === 1 && availableSizesFromVariants[0] === 'one-size';
+  const requiresSize = hasVariants && availableSizesFromVariants.length > 0 && !hasOnlyOneSize;
+  const requiresColor = hasVariants && availableColorsFromVariants.length > 0;
+
+  // Auto-select "one-size" for products that don't need size selection
+  const effectiveSelectedSize = hasOnlyOneSize ? 'one-size' : selectedSize;
 
   // Check if selected combination is in stock
-  const selectedVariantStock = selectedSize && selectedType 
-    ? getVariantStock(selectedSize, selectedType) 
+  const selectedVariantStock = effectiveSelectedSize && selectedType 
+    ? getVariantStock(effectiveSelectedSize, selectedType) 
     : 0;
   const isSelectedVariantInStock = selectedVariantStock > 0;
 
@@ -143,7 +145,7 @@ export default function ProductPage() {
     // Build product name with size and color
     let productName = product.name;
     const extras: string[] = [];
-    if (selectedSize) {
+    if (selectedSize && selectedSize !== 'one-size') {
       extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
@@ -197,7 +199,7 @@ export default function ProductPage() {
     // Build product name with size and color
     let productName = product.name;
     const extras: string[] = [];
-    if (selectedSize) {
+    if (selectedSize && selectedSize !== 'one-size') {
       extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
@@ -273,7 +275,7 @@ export default function ProductPage() {
   
   // Disable add to cart if variant product and no valid selection or out of stock
   const isAddToCartDisabled = hasVariants 
-    ? (!selectedSize || !selectedType || !isSelectedVariantInStock)
+    ? (!effectiveSelectedSize || !selectedType || !isSelectedVariantInStock)
     : !inStock;
 
   return (
@@ -456,7 +458,7 @@ export default function ProductPage() {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {availableColorsFromVariants.map((color) => {
-                    const colorStock = selectedSize ? getVariantStock(selectedSize, color) : getColorStock(color);
+                    const colorStock = effectiveSelectedSize ? getVariantStock(effectiveSelectedSize, color) : getColorStock(color);
                     const isOutOfStock = colorStock === 0;
                     const isSelected = selectedType === color;
                     
@@ -487,7 +489,7 @@ export default function ProductPage() {
             )}
 
             {/* Show selected variant stock status */}
-            {hasVariants && selectedSize && selectedType && (
+            {hasVariants && effectiveSelectedSize && selectedType && (
               <div className={`p-3 rounded-md text-sm ${
                 isSelectedVariantInStock 
                   ? 'bg-green-50 text-green-700 border border-green-200' 
