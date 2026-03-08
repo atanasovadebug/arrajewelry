@@ -37,8 +37,6 @@ interface CheckoutRequest {
   cancelUrl: string;
 }
 
-const WOMENSDAY_START_DATE = "2026-03-05";
-const WOMENSDAY_END_DATE = "2026-03-09";
 
 const CYRILLIC_TO_LATIN_MAP: Record<string, string> = {
   а: "a",
