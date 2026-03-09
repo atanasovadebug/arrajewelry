@@ -372,7 +372,6 @@ export default function AdminPage() {
   const deleteOrder = async (orderId: string) => {
     if (!confirm('Сигурни ли сте, че искате да изтриете тази поръчка?')) return;
 
-    // Delete order items first
     await supabase.from('order_items').delete().eq('order_id', orderId);
     
     const { error } = await supabase.from('orders').delete().eq('id', orderId);
@@ -383,7 +382,10 @@ export default function AdminPage() {
     } else {
       toast.success('Поръчката е изтрита');
       setOrders(prev => prev.filter(o => o.id !== orderId));
-      if (selectedOrder?.id === orderId) setSelectedOrder(null);
+      if (expandedOrderId === orderId) {
+        setExpandedOrderId(null);
+        setExpandedOrderItems([]);
+      }
     }
   };
 
