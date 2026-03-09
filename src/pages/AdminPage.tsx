@@ -1306,6 +1306,7 @@ export default function AdminPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
 
           <TabsContent value="messages" className="space-y-6">
             {selectedMessage ? (
