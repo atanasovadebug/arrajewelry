@@ -366,9 +366,6 @@ export default function AdminPage() {
     } else {
       toast.success('Статусът е обновен');
       fetchOrders();
-      if (selectedOrder?.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: newStatus });
-      }
     }
   };
 
