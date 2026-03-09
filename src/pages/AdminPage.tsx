@@ -341,10 +341,15 @@ export default function AdminPage() {
     return data as OrderItem[];
   };
 
-  const viewOrderDetails = async (order: Order) => {
-    setSelectedOrder(order);
+  const toggleOrderExpand = async (order: Order) => {
+    if (expandedOrderId === order.id) {
+      setExpandedOrderId(null);
+      setExpandedOrderItems([]);
+      return;
+    }
+    setExpandedOrderId(order.id);
     const items = await fetchOrderItems(order.id);
-    setOrderItems(items);
+    setExpandedOrderItems(items);
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
