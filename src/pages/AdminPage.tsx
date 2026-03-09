@@ -1171,112 +1171,27 @@ export default function AdminPage() {
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
-            {selectedOrder ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span>Детайли на поръчка #{selectedOrder.id.slice(0, 8)}</span>
-                    <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(null)}>
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Информация за клиента</h3>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="text-muted-foreground">Име:</span> {selectedOrder.customer_name}</p>
-                        <p><span className="text-muted-foreground">Имейл:</span> {selectedOrder.customer_email}</p>
-                        <p><span className="text-muted-foreground">Телефон:</span> {selectedOrder.customer_phone}</p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Адрес за доставка (Speedy)</h3>
-                      <div className="space-y-2 text-sm">
-                        <p><span className="text-muted-foreground">Град:</span> {selectedOrder.shipping_address?.city}</p>
-                        <p><span className="text-muted-foreground">Адрес:</span> {selectedOrder.shipping_address?.address}</p>
-                        <p><span className="text-muted-foreground">Пощенски код:</span> {selectedOrder.shipping_address?.postalCode}</p>
-                      </div>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Поръчки ({orders.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ordersLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">Зареждане...</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Няма поръчки
                   </div>
-
-                  {selectedOrder.notes && (
-                    <div className="space-y-2">
-                      <h3 className="font-medium">Бележки</h3>
-                      <p className="text-sm text-muted-foreground">{selectedOrder.notes}</p>
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Продукти</h3>
-                    <div className="space-y-2">
-                      {orderItems.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                          <div>
-                            <p className="font-medium">{item.product_name}</p>
-                            <p className="text-sm text-muted-foreground">x{item.quantity}</p>
-                          </div>
-                          <p className="font-medium">{formatDualCurrency(item.product_price * item.quantity)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-4 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Междинна сума</span>
-                      <span>{formatDualCurrency(selectedOrder.subtotal)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Доставка (Speedy)</span>
-                      <span>{selectedOrder.shipping_cost === 0 ? 'Безплатна' : formatDualCurrency(selectedOrder.shipping_cost)}</span>
-                    </div>
-                    <div className="flex justify-between font-semibold pt-2 border-t">
-                      <span>Общо</span>
-                      <span>{formatDualCurrency(selectedOrder.total)}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4 pt-4 border-t">
-                    <Label>Статус:</Label>
-                    <Select value={selectedOrder.status} onValueChange={(value) => updateOrderStatus(selectedOrder.id, value)}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Изчаква</SelectItem>
-                        <SelectItem value="paid">Платена</SelectItem>
-                        <SelectItem value="shipped">Изпратена</SelectItem>
-                        <SelectItem value="delivered">Доставена</SelectItem>
-                        <SelectItem value="cancelled">Отказана</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button variant="destructive" size="sm" onClick={() => deleteOrder(selectedOrder.id)} className="gap-2">
-                      <Trash2 className="h-4 w-4" />
-                      Изтрий
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Поръчки ({orders.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ordersLoading ? (
-                    <div className="text-center py-8 text-muted-foreground">Зареждане...</div>
-                  ) : orders.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Няма поръчки
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {orders.map((order) => (
+                ) : (
+                  <div className="space-y-3">
+                    {orders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="border border-border rounded-lg overflow-hidden"
+                      >
                         <div
-                          key={order.id}
-                          className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
+                          className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                          onClick={() => toggleOrderExpand(order)}
                         >
                           <div className="flex items-center justify-between">
                             <div className="space-y-1">
@@ -1302,25 +1217,95 @@ export default function AdminPage() {
                                   minute: '2-digit'
                                 })}
                               </p>
-                              <div className="flex gap-2">
-                                <Button variant="outline" size="sm" onClick={() => viewOrderDetails(order)} className="gap-2">
-                                  <Eye className="h-4 w-4" />
-                                  Детайли
-                                </Button>
-                                <Button variant="ghost" size="sm" onClick={() => deleteOrder(order.id)} className="text-destructive hover:text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+
+                        {expandedOrderId === order.id && (
+                          <div className="border-t border-border p-4 bg-muted/30 space-y-6">
+                            <div className="grid md:grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                <h3 className="font-medium">Информация за клиента</h3>
+                                <div className="space-y-2 text-sm">
+                                  <p><span className="text-muted-foreground">Име:</span> {order.customer_name}</p>
+                                  <p><span className="text-muted-foreground">Имейл:</span> {order.customer_email}</p>
+                                  <p><span className="text-muted-foreground">Телефон:</span> {order.customer_phone}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-4">
+                                <h3 className="font-medium">Адрес за доставка (Speedy)</h3>
+                                <div className="space-y-2 text-sm">
+                                  <p><span className="text-muted-foreground">Град:</span> {order.shipping_address?.city}</p>
+                                  <p><span className="text-muted-foreground">Адрес:</span> {order.shipping_address?.address}</p>
+                                  <p><span className="text-muted-foreground">Пощенски код:</span> {order.shipping_address?.postalCode}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {order.notes && (
+                              <div className="space-y-2">
+                                <h3 className="font-medium">Бележки</h3>
+                                <p className="text-sm text-muted-foreground">{order.notes}</p>
+                              </div>
+                            )}
+
+                            <div className="space-y-4">
+                              <h3 className="font-medium">Продукти</h3>
+                              <div className="space-y-2">
+                                {expandedOrderItems.map((item) => (
+                                  <div key={item.id} className="flex justify-between items-center p-3 bg-background rounded-lg">
+                                    <div>
+                                      <p className="font-medium">{item.product_name}</p>
+                                      <p className="text-sm text-muted-foreground">x{item.quantity}</p>
+                                    </div>
+                                    <p className="font-medium">{formatDualCurrency(item.product_price * item.quantity)}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="border-t pt-4 space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Междинна сума</span>
+                                <span>{formatDualCurrency(order.subtotal)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Доставка (Speedy)</span>
+                                <span>{order.shipping_cost === 0 ? 'Безплатна' : formatDualCurrency(order.shipping_cost)}</span>
+                              </div>
+                              <div className="flex justify-between font-semibold pt-2 border-t">
+                                <span>Общо</span>
+                                <span>{formatDualCurrency(order.total)}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 pt-4 border-t">
+                              <Label>Статус:</Label>
+                              <Select value={order.status} onValueChange={(value) => updateOrderStatus(order.id, value)}>
+                                <SelectTrigger className="w-48" onClick={(e) => e.stopPropagation()}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Изчаква</SelectItem>
+                                  <SelectItem value="paid">Платена</SelectItem>
+                                  <SelectItem value="shipped">Изпратена</SelectItem>
+                                  <SelectItem value="delivered">Доставена</SelectItem>
+                                  <SelectItem value="cancelled">Отказана</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); deleteOrder(order.id); }} className="gap-2">
+                                <Trash2 className="h-4 w-4" />
+                                Изтрий
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
           <TabsContent value="messages" className="space-y-6">
             {selectedMessage ? (
