@@ -130,7 +130,14 @@ export default function CheckoutPage() {
     const code = normalizePromoCode(discountCode);
     const sofiaDate = getSofiaDateKey();
 
-    if (code === "arra10") {
+    if (code === "spring30") {
+      // Valid 2026-03-16 to 2026-03-21 (Sofia time)
+      if (sofiaDate < "2026-03-16" || sofiaDate > "2026-03-21") {
+        setDiscountError("Този код вече не е валиден");
+        return;
+      }
+      setAppliedDiscount({ code: "spring30", type: "all", percent: 30 });
+    } else if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
     } else if (code === "radina15") {
       const hasMoissanite = items.some((item) => isMoissaniteCategory(item.category));
