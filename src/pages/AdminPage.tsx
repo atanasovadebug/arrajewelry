@@ -974,7 +974,7 @@ export default function AdminPage() {
                             ))}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
-                            Обща наличност: {productVariants.reduce((sum, v) => sum + v.stock, 0)} бр.
+                            Обща наличност: {productVariants.reduce((sum, v) => sum + v.stock, 0)} бр. | Празна цена = основна цена на продукта
                           </p>
                         </div>
                       )}
