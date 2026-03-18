@@ -123,6 +123,8 @@ export default function AdminPage() {
         return ['35', '36', '36.5', '37', '38', '39', '40', '41', '42'];
       case 'bracelets':
         return ['14', '15', '15.5', '16', '16.5', '17', '18', '19', '20', '21'];
+      case 'earrings':
+        return ['S', 'M'];
       default:
         return [];
     }
@@ -564,7 +566,7 @@ export default function AdminPage() {
     }
 
     // Build complete variants list from selections
-    const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces';
+    const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings';
     const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
     
     const allVariants: Array<{ size: string; color: string; stock: number }> = [];
@@ -838,10 +840,10 @@ export default function AdminPage() {
                       </div>
                       
                       {/* Size selection - only for rings, bracelets, necklaces */}
-                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
+                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">
-                            {subcategory === 'rings' ? 'Размери (5-10)' : subcategory === 'necklaces' ? 'Дължина (35-42 см)' : 'Размери (14-21 см)'}
+                            {subcategory === 'rings' ? 'Размери (5-10)' : subcategory === 'necklaces' ? 'Дължина (35-42 см)' : subcategory === 'earrings' ? 'Размер (S, M)' : 'Размери (14-21 см)'}
                           </Label>
                           <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
                             {getSizeOptions(subcategory).map((size) => (
@@ -861,7 +863,7 @@ export default function AdminPage() {
                                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                                 }`}
                               >
-                                {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                                {subcategory === 'rings' ? `Размер ${size}` : subcategory === 'earrings' ? size : `${size} см`}
                               </button>
                             ))}
                           </div>
@@ -896,14 +898,14 @@ export default function AdminPage() {
                       </div>
 
                       {/* Variant stock grid - with sizes */}
-                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && selectedSizes.length > 0 && selectedTypes.length > 0 && (
+                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && selectedSizes.length > 0 && selectedTypes.length > 0 && (
                         <div className="space-y-3 border border-input rounded-md p-4 bg-muted/30">
                           <Label className="text-sm font-medium">Наличност по варианти</Label>
                           <div className="grid gap-3">
                             {selectedSizes.sort((a, b) => Number(a) - Number(b)).map((size) => (
                               <div key={size} className="space-y-2">
                                 <p className="text-sm font-medium text-muted-foreground">
-                                  {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                                  {subcategory === 'rings' ? `Размер ${size}` : subcategory === 'earrings' ? `Размер ${size}` : `${size} см`}
                                 </p>
                                 <div className="grid grid-cols-2 gap-3">
                                   {selectedTypes.map((color) => {
@@ -947,7 +949,7 @@ export default function AdminPage() {
                       )}
 
                       {/* Variant stock grid - without sizes (earrings, etc.) */}
-                      {!(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && selectedTypes.length > 0 && (
+                      {!(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && selectedTypes.length > 0 && (
                         <div className="space-y-3 border border-input rounded-md p-4 bg-muted/30">
                           <Label className="text-sm font-medium">Наличност по цвят</Label>
                           <div className="grid grid-cols-2 gap-3">

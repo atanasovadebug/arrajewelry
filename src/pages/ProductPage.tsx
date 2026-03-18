@@ -157,7 +157,7 @@ export default function ProductPage() {
     let productName = product.name;
     const extras: string[] = [];
     if (selectedSize && selectedSize !== 'one-size') {
-      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
+      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : product.subcategory === 'earrings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
       extras.push(colorLabels[selectedType] || selectedType);
@@ -211,7 +211,7 @@ export default function ProductPage() {
     let productName = product.name;
     const extras: string[] = [];
     if (selectedSize && selectedSize !== 'one-size') {
-      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
+      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : product.subcategory === 'earrings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
       extras.push(colorLabels[selectedType] || selectedType);
@@ -428,7 +428,7 @@ export default function ProductPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">
-                    {product.subcategory === 'rings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
+                    {product.subcategory === 'rings' || product.subcategory === 'earrings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
                   </label>
                   {product.subcategory === 'rings' && <RingSizeGuide />}
                 </div>
@@ -452,7 +452,7 @@ export default function ProductPage() {
                               : 'bg-background border-border hover:border-primary'
                         }`}
                       >
-                        {product.subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                        {product.subcategory === 'rings' ? `Размер ${size}` : product.subcategory === 'earrings' ? size : `${size} см`}
                         {isOutOfStock && ' (Изчерпан)'}
                       </button>
                     );
