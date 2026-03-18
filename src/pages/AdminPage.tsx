@@ -949,7 +949,7 @@ export default function AdminPage() {
                       )}
 
                       {/* Variant stock grid - without sizes (earrings, etc.) */}
-                      {!(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && selectedTypes.length > 0 && (
+                      {!(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && selectedTypes.length > 0 && (
                         <div className="space-y-3 border border-input rounded-md p-4 bg-muted/30">
                           <Label className="text-sm font-medium">Наличност по цвят</Label>
                           <div className="grid grid-cols-2 gap-3">
