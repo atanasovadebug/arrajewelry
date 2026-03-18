@@ -452,7 +452,7 @@ export default function ProductPage() {
                               : 'bg-background border-border hover:border-primary'
                         }`}
                       >
-                        {product.subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                        {product.subcategory === 'rings' ? `Размер ${size}` : product.subcategory === 'earrings' ? size : `${size} см`}
                         {isOutOfStock && ' (Изчерпан)'}
                       </button>
                     );
