@@ -863,7 +863,7 @@ export default function AdminPage() {
                                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                                 }`}
                               >
-                                {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                                {subcategory === 'rings' ? `Размер ${size}` : subcategory === 'earrings' ? size : `${size} см`}
                               </button>
                             ))}
                           </div>
