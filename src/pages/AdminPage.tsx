@@ -898,7 +898,7 @@ export default function AdminPage() {
                       </div>
 
                       {/* Variant stock grid - with sizes */}
-                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && selectedSizes.length > 0 && selectedTypes.length > 0 && (
+                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && selectedSizes.length > 0 && selectedTypes.length > 0 && (
                         <div className="space-y-3 border border-input rounded-md p-4 bg-muted/30">
                           <Label className="text-sm font-medium">Наличност по варианти</Label>
                           <div className="grid gap-3">
