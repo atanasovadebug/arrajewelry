@@ -178,10 +178,14 @@ export default function ProductPage() {
       productName = `${product.name} (${extras.join(', ')})`;
     }
     
+    const finalPrice = (effectiveSelectedSize && selectedType)
+      ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product.price))
+      : Number(product.price);
+    
     addItem({
       productId: product.id,
       name: productName,
-      price: Number(product.price),
+      price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
       category: product.category,
