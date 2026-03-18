@@ -428,7 +428,7 @@ export default function ProductPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">
-                    {product.subcategory === 'rings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
+                    {product.subcategory === 'rings' || product.subcategory === 'earrings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
                   </label>
                   {product.subcategory === 'rings' && <RingSizeGuide />}
                 </div>
