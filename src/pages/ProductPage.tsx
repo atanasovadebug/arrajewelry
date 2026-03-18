@@ -211,7 +211,7 @@ export default function ProductPage() {
     let productName = product.name;
     const extras: string[] = [];
     if (selectedSize && selectedSize !== 'one-size') {
-      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : `${selectedSize} см`);
+      extras.push(product.subcategory === 'rings' ? `размер ${selectedSize}` : product.subcategory === 'earrings' ? `размер ${selectedSize}` : `${selectedSize} см`);
     }
     if (selectedType) {
       extras.push(colorLabels[selectedType] || selectedType);
