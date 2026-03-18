@@ -137,7 +137,7 @@ export default function AdminPage() {
   ];
 
   // Product variants state
-  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number }>>([]);
+  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number; price?: number | null }>>([]);
 
   // Check authentication and admin role
   useEffect(() => {
