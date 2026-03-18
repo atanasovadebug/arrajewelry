@@ -569,11 +569,11 @@ export default function AdminPage() {
     const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings';
     const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
     
-    const allVariants: Array<{ size: string; color: string; stock: number }> = [];
+    const allVariants: Array<{ size: string; color: string; stock: number; price?: number | null }> = [];
     for (const size of effectiveSizes) {
       for (const color of selectedTypes) {
         const existing = productVariants.find(v => v.size === size && v.color === color);
-        allVariants.push({ size, color, stock: existing?.stock ?? 0 });
+        allVariants.push({ size, color, stock: existing?.stock ?? 0, price: existing?.price ?? null });
       }
     }
     
