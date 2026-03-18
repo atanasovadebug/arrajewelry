@@ -69,7 +69,7 @@ export default function ProductPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_variants")
-        .select("size, color, stock")
+        .select("size, color, stock, price")
         .eq("product_id", productId);
       
       if (error) throw error;
