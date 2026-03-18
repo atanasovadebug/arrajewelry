@@ -914,29 +914,58 @@ export default function AdminPage() {
                                     const variant = productVariants.find(v => v.size === size && v.color === color);
                                     const colorLabel = colorOptions.find(c => c.value === color)?.label || color;
                                     return (
-                                      <div key={`${size}-${color}`} className="flex items-center gap-2">
+                                       <div key={`${size}-${color}`} className="flex items-center gap-2">
                                         <span className="text-sm min-w-[80px]">{colorLabel}:</span>
-                                        <Input
-                                          type="number"
-                                          min="0"
-                                          value={variant?.stock ?? 0}
-                                          onChange={(e) => {
-                                            const newStock = parseInt(e.target.value) || 0;
-                                            setProductVariants(prev => {
-                                              const existing = prev.find(v => v.size === size && v.color === color);
-                                              if (existing) {
-                                                return prev.map(v => 
-                                                  v.size === size && v.color === color 
-                                                    ? { ...v, stock: newStock }
-                                                    : v
-                                                );
-                                              } else {
-                                                return [...prev, { size, color, stock: newStock }];
-                                              }
-                                            });
-                                          }}
-                                          className="w-20 h-8"
-                                        />
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-muted-foreground">бр:</span>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            value={variant?.stock ?? 0}
+                                            onChange={(e) => {
+                                              const newStock = parseInt(e.target.value) || 0;
+                                              setProductVariants(prev => {
+                                                const existing = prev.find(v => v.size === size && v.color === color);
+                                                if (existing) {
+                                                  return prev.map(v => 
+                                                    v.size === size && v.color === color 
+                                                      ? { ...v, stock: newStock }
+                                                      : v
+                                                  );
+                                                } else {
+                                                  return [...prev, { size, color, stock: newStock }];
+                                                }
+                                              });
+                                            }}
+                                            className="w-16 h-8"
+                                          />
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-muted-foreground">лв:</span>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder={price || '—'}
+                                            value={variant?.price ?? ''}
+                                            onChange={(e) => {
+                                              const newPrice = e.target.value ? parseFloat(e.target.value) : null;
+                                              setProductVariants(prev => {
+                                                const existing = prev.find(v => v.size === size && v.color === color);
+                                                if (existing) {
+                                                  return prev.map(v => 
+                                                    v.size === size && v.color === color 
+                                                      ? { ...v, price: newPrice }
+                                                      : v
+                                                  );
+                                                } else {
+                                                  return [...prev, { size, color, stock: 0, price: newPrice }];
+                                                }
+                                              });
+                                            }}
+                                            className="w-20 h-8"
+                                          />
+                                        </div>
                                       </div>
                                     );
                                   })}
