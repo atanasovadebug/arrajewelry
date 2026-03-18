@@ -566,7 +566,7 @@ export default function AdminPage() {
     }
 
     // Build complete variants list from selections
-    const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces';
+    const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings';
     const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
     
     const allVariants: Array<{ size: string; color: string; stock: number }> = [];
