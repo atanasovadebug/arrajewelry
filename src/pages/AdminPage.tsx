@@ -840,10 +840,10 @@ export default function AdminPage() {
                       </div>
                       
                       {/* Size selection - only for rings, bracelets, necklaces */}
-                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces') && (
+                      {(subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings') && (
                         <div className="space-y-2">
                           <Label className="text-sm text-muted-foreground">
-                            {subcategory === 'rings' ? 'Размери (5-10)' : subcategory === 'necklaces' ? 'Дължина (35-42 см)' : 'Размери (14-21 см)'}
+                            {subcategory === 'rings' ? 'Размери (5-10)' : subcategory === 'necklaces' ? 'Дължина (35-42 см)' : subcategory === 'earrings' ? 'Размер (S, M)' : 'Размери (14-21 см)'}
                           </Label>
                           <div className="flex flex-wrap gap-2 p-3 border border-input rounded-md bg-background">
                             {getSizeOptions(subcategory).map((size) => (
