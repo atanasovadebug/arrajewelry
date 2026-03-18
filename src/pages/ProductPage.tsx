@@ -134,6 +134,11 @@ export default function ProductPage() {
     : 0;
   const isSelectedVariantInStock = selectedVariantStock > 0;
 
+  // Current display price based on selected variant
+  const currentPrice = (effectiveSelectedSize && selectedType)
+    ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product?.price ?? 0))
+    : Number(product?.price ?? 0);
+
   const handleAddToCart = () => {
     if (!product) return;
     if (requiresSize && !selectedSize) {
