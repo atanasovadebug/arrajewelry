@@ -102,10 +102,6 @@ export default function ProductPage() {
     return variant?.price ?? null;
   };
 
-  // Current display price based on selected variant
-  const currentPrice = (effectiveSelectedSize && selectedType)
-    ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product?.price ?? 0))
-    : Number(product?.price ?? 0);
 
   // Check if a specific size has any stock (for any color)
   const getSizeStock = (size: string) => {
