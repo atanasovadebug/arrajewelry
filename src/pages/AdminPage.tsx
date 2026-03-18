@@ -905,7 +905,7 @@ export default function AdminPage() {
                             {selectedSizes.sort((a, b) => Number(a) - Number(b)).map((size) => (
                               <div key={size} className="space-y-2">
                                 <p className="text-sm font-medium text-muted-foreground">
-                                  {subcategory === 'rings' ? `Размер ${size}` : `${size} см`}
+                                  {subcategory === 'rings' ? `Размер ${size}` : subcategory === 'earrings' ? `Размер ${size}` : `${size} см`}
                                 </p>
                                 <div className="grid grid-cols-2 gap-3">
                                   {selectedTypes.map((color) => {
