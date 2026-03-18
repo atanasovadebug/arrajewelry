@@ -463,7 +463,7 @@ export default function AdminPage() {
     // Load existing variants
     const { data: variants } = await supabase
       .from('product_variants')
-      .select('size, color, stock')
+      .select('size, color, stock, price')
       .eq('product_id', product.id);
     
     const loadedVariants = variants || [];
