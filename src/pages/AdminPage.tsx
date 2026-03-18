@@ -653,7 +653,8 @@ export default function AdminPage() {
               product_id: newProduct.id,
               size: v.size,
               color: v.color,
-              stock: v.stock
+              stock: v.stock,
+              price: v.price || null
             })));
           
           if (variantError && import.meta.env.DEV) {
