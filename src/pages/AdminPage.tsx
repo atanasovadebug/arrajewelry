@@ -137,7 +137,7 @@ export default function AdminPage() {
   ];
 
   // Product variants state
-  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number }>>([]);
+  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number; price?: number | null }>>([]);
 
   // Check authentication and admin role
   useEffect(() => {
@@ -463,7 +463,7 @@ export default function AdminPage() {
     // Load existing variants
     const { data: variants } = await supabase
       .from('product_variants')
-      .select('size, color, stock')
+      .select('size, color, stock, price')
       .eq('product_id', product.id);
     
     const loadedVariants = variants || [];
@@ -569,11 +569,11 @@ export default function AdminPage() {
     const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings';
     const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
     
-    const allVariants: Array<{ size: string; color: string; stock: number }> = [];
+    const allVariants: Array<{ size: string; color: string; stock: number; price?: number | null }> = [];
     for (const size of effectiveSizes) {
       for (const color of selectedTypes) {
         const existing = productVariants.find(v => v.size === size && v.color === color);
-        allVariants.push({ size, color, stock: existing?.stock ?? 0 });
+        allVariants.push({ size, color, stock: existing?.stock ?? 0, price: existing?.price ?? null });
       }
     }
     
@@ -618,7 +618,8 @@ export default function AdminPage() {
               product_id: editingProduct.id,
               size: v.size,
               color: v.color,
-              stock: v.stock
+              stock: v.stock,
+              price: v.price || null
             })));
           
           if (variantError && import.meta.env.DEV) {
@@ -652,7 +653,8 @@ export default function AdminPage() {
               product_id: newProduct.id,
               size: v.size,
               color: v.color,
-              stock: v.stock
+              stock: v.stock,
+              price: v.price || null
             })));
           
           if (variantError && import.meta.env.DEV) {
@@ -912,29 +914,58 @@ export default function AdminPage() {
                                     const variant = productVariants.find(v => v.size === size && v.color === color);
                                     const colorLabel = colorOptions.find(c => c.value === color)?.label || color;
                                     return (
-                                      <div key={`${size}-${color}`} className="flex items-center gap-2">
+                                       <div key={`${size}-${color}`} className="flex items-center gap-2">
                                         <span className="text-sm min-w-[80px]">{colorLabel}:</span>
-                                        <Input
-                                          type="number"
-                                          min="0"
-                                          value={variant?.stock ?? 0}
-                                          onChange={(e) => {
-                                            const newStock = parseInt(e.target.value) || 0;
-                                            setProductVariants(prev => {
-                                              const existing = prev.find(v => v.size === size && v.color === color);
-                                              if (existing) {
-                                                return prev.map(v => 
-                                                  v.size === size && v.color === color 
-                                                    ? { ...v, stock: newStock }
-                                                    : v
-                                                );
-                                              } else {
-                                                return [...prev, { size, color, stock: newStock }];
-                                              }
-                                            });
-                                          }}
-                                          className="w-20 h-8"
-                                        />
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-muted-foreground">бр:</span>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            value={variant?.stock ?? 0}
+                                            onChange={(e) => {
+                                              const newStock = parseInt(e.target.value) || 0;
+                                              setProductVariants(prev => {
+                                                const existing = prev.find(v => v.size === size && v.color === color);
+                                                if (existing) {
+                                                  return prev.map(v => 
+                                                    v.size === size && v.color === color 
+                                                      ? { ...v, stock: newStock }
+                                                      : v
+                                                  );
+                                                } else {
+                                                  return [...prev, { size, color, stock: newStock }];
+                                                }
+                                              });
+                                            }}
+                                            className="w-16 h-8"
+                                          />
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs text-muted-foreground">лв:</span>
+                                          <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            placeholder={price || '—'}
+                                            value={variant?.price ?? ''}
+                                            onChange={(e) => {
+                                              const newPrice = e.target.value ? parseFloat(e.target.value) : null;
+                                              setProductVariants(prev => {
+                                                const existing = prev.find(v => v.size === size && v.color === color);
+                                                if (existing) {
+                                                  return prev.map(v => 
+                                                    v.size === size && v.color === color 
+                                                      ? { ...v, price: newPrice }
+                                                      : v
+                                                  );
+                                                } else {
+                                                  return [...prev, { size, color, stock: 0, price: newPrice }];
+                                                }
+                                              });
+                                            }}
+                                            className="w-20 h-8"
+                                          />
+                                        </div>
                                       </div>
                                     );
                                   })}
@@ -943,7 +974,7 @@ export default function AdminPage() {
                             ))}
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
-                            Обща наличност: {productVariants.reduce((sum, v) => sum + v.stock, 0)} бр.
+                            Обща наличност: {productVariants.reduce((sum, v) => sum + v.stock, 0)} бр. | Празна цена = основна цена на продукта
                           </p>
                         </div>
                       )}

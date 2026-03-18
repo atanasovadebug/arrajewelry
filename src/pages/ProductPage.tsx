@@ -69,7 +69,7 @@ export default function ProductPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_variants")
-        .select("size, color, stock")
+        .select("size, color, stock, price")
         .eq("product_id", productId);
       
       if (error) throw error;
@@ -94,6 +94,14 @@ export default function ProductPage() {
     const variant = productVariants.find(v => v.size === size && v.color === color);
     return variant?.stock ?? 0;
   };
+
+  // Get variant price for selected combination (null means use base product price)
+  const getVariantPrice = (size: string, color: string): number | null => {
+    if (!productVariants) return null;
+    const variant = productVariants.find(v => v.size === size && v.color === color);
+    return variant?.price ?? null;
+  };
+
 
   // Check if a specific size has any stock (for any color)
   const getSizeStock = (size: string) => {
@@ -125,6 +133,11 @@ export default function ProductPage() {
     ? getVariantStock(effectiveSelectedSize, selectedType) 
     : 0;
   const isSelectedVariantInStock = selectedVariantStock > 0;
+
+  // Current display price based on selected variant
+  const currentPrice = (effectiveSelectedSize && selectedType)
+    ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product?.price ?? 0))
+    : Number(product?.price ?? 0);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -166,10 +179,14 @@ export default function ProductPage() {
       productName = `${product.name} (${extras.join(', ')})`;
     }
     
+    const finalPrice = (effectiveSelectedSize && selectedType)
+      ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product.price))
+      : Number(product.price);
+    
     addItem({
       productId: product.id,
       name: productName,
-      price: Number(product.price),
+      price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
       category: product.category,
@@ -220,10 +237,14 @@ export default function ProductPage() {
       productName = `${product.name} (${extras.join(', ')})`;
     }
     
+    const finalPrice = (effectiveSelectedSize && selectedType)
+      ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product.price))
+      : Number(product.price);
+    
     addItem({
       productId: product.id,
       name: productName,
-      price: Number(product.price),
+      price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
       category: product.category,
@@ -376,18 +397,18 @@ export default function ProductPage() {
                 </div>
               </div>
               
-              <div className="flex flex-col gap-2 mt-4">
+                <div className="flex flex-col gap-2 mt-4">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
-                    {formatDualCurrency(Number(product.price))}
+                    {formatDualCurrency(currentPrice)}
                   </span>
-                  {product.original_price && product.original_price > product.price && (
+                  {product.original_price && product.original_price > currentPrice && (
                     <Badge variant="secondary" className="bg-primary/10 text-primary">
-                      -{Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)}%
+                      -{Math.round((1 - currentPrice / Number(product.original_price)) * 100)}%
                     </Badge>
                   )}
                 </div>
-                {product.original_price && product.original_price > product.price && (
+                {product.original_price && product.original_price > currentPrice && (
                   <span className="text-base text-muted-foreground line-through">
                     {formatDualCurrency(Number(product.original_price))}
                   </span>
