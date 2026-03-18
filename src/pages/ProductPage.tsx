@@ -388,18 +388,18 @@ export default function ProductPage() {
                 </div>
               </div>
               
-              <div className="flex flex-col gap-2 mt-4">
+                <div className="flex flex-col gap-2 mt-4">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
-                    {formatDualCurrency(Number(product.price))}
+                    {formatDualCurrency(currentPrice)}
                   </span>
-                  {product.original_price && product.original_price > product.price && (
+                  {product.original_price && product.original_price > currentPrice && (
                     <Badge variant="secondary" className="bg-primary/10 text-primary">
-                      -{Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)}%
+                      -{Math.round((1 - currentPrice / Number(product.original_price)) * 100)}%
                     </Badge>
                   )}
                 </div>
-                {product.original_price && product.original_price > product.price && (
+                {product.original_price && product.original_price > currentPrice && (
                   <span className="text-base text-muted-foreground line-through">
                     {formatDualCurrency(Number(product.original_price))}
                   </span>
