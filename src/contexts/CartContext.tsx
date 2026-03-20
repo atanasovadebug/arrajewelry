@@ -60,10 +60,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: Omit<CartItem, "id">) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId);
+      // Match by productId AND name (name includes size/color variant info)
+      const existing = prev.find((i) => i.productId === item.productId && i.name === item.name);
       if (existing) {
         return prev.map((i) =>
-          i.productId === item.productId
+          i.productId === item.productId && i.name === item.name
             ? { ...i, quantity: i.quantity + item.quantity }
             : i
         );
