@@ -127,16 +127,7 @@ serve(async (req) => {
     if (discountCode) {
       const code = normalizePromoCode(discountCode);
 
-      if (code === "spring30") {
-        // Valid 2026-03-16 to 2026-03-21 (Sofia time)
-        const now = new Date();
-        const sofiaDate = now.toLocaleDateString("en-CA", { timeZone: "Europe/Sofia" });
-        if (sofiaDate >= "2026-03-16" && sofiaDate <= "2026-03-21") {
-          discountPercent = 30;
-          discountType = "all";
-          discountLabel = "Отстъпка SPRING30 (−30%)";
-        }
-      } else if (code === "arra10") {
+      if (code === "arra10") {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
