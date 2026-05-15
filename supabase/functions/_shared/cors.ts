@@ -1,7 +1,10 @@
 // Allowed origins for CORS - restrict API access to known domains
 const ALLOWED_ORIGINS = [
+  "https://arrajewelry.com",
+  "https://www.arrajewelry.com",
   "https://arrajewelery.com",
   "https://www.arrajewelery.com",
+  "https://arrajewelry.lovable.app",
   "https://zfgafewkcrvkfvofttud.lovableproject.com",
   "http://localhost:5173", // Development
   "http://localhost:8080", // Alternative dev port
