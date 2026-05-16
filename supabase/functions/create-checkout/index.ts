@@ -131,10 +131,6 @@ serve(async (req) => {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
-      } else if (code === "spring25") {
-        discountPercent = 25;
-        discountType = "all";
-        discountLabel = "Отстъпка SPRING25 (−25%)";
       } else if (code === "radina15") {
         const hasMoissanite = items.some((item: CartItem) => isMoissaniteCategory(item.category));
         if (hasMoissanite) {
