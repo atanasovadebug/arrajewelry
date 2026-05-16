@@ -132,8 +132,6 @@ export default function CheckoutPage() {
 
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
-    } else if (false) {
-      // spring25 removed
     } else if (code === "radina15") {
       const hasMoissanite = items.some((item) => isMoissaniteCategory(item.category));
       if (!hasMoissanite) {
