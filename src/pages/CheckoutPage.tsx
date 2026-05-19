@@ -132,15 +132,6 @@ export default function CheckoutPage() {
 
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
-    } else if (code === "spring25") {
-      setAppliedDiscount({ code: "spring25", type: "all", percent: 25 });
-    } else if (code === "radina15") {
-      const hasMoissanite = items.some((item) => isMoissaniteCategory(item.category));
-      if (!hasMoissanite) {
-        setDiscountError("Този код е валиден само за бижута от категория Мойсанит");
-        return;
-      }
-      setAppliedDiscount({ code: "radina15", type: "moissanite", percent: 15 });
     } else {
       setDiscountError("Грешен код, опитайте отново!");
     }
