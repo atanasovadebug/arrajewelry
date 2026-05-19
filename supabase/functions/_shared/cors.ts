@@ -1,7 +1,10 @@
 // Allowed origins for CORS - restrict API access to known domains
 const ALLOWED_ORIGINS = [
+  "https://arrajewelry.com",
+  "https://www.arrajewelry.com",
   "https://arrajewelery.com",
   "https://www.arrajewelery.com",
+  "https://arrajewelry.lovable.app",
   "https://zfgafewkcrvkfvofttud.lovableproject.com",
   "http://localhost:5173", // Development
   "http://localhost:8080", // Alternative dev port
@@ -17,7 +20,7 @@ export function getCorsHeaders(origin: string | null): Record<string, string> {
   
   return {
     "Access-Control-Allow-Origin": isAllowed && origin ? origin : ALLOWED_ORIGINS[0],
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-session-id",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-session-id, x-supabase-api-version, prefer, range",
     "Access-Control-Allow-Credentials": "true",
   };
 }
