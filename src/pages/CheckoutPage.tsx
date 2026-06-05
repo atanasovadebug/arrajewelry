@@ -132,6 +132,8 @@ export default function CheckoutPage() {
 
     if (code === "arra10") {
       setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
+    } else if (code === "summer15") {
+      setAppliedDiscount({ code: "summer15", type: "all", percent: 15 });
     } else {
       setDiscountError("Грешен код, опитайте отново!");
     }
