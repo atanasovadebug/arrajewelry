@@ -449,8 +449,18 @@ export default function ProductPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium">
-                    {product.subcategory === 'rings' || product.subcategory === 'earrings' ? 'Размер' : 'Дължина'}: <span className="text-destructive">*</span>
+                    {(() => {
+                      if (product.subcategory === 'rings' || product.subcategory === 'earrings') return 'Размер';
+                      const nums = availableSizesFromVariants
+                        .map((s) => parseFloat(String(s).replace(',', '.')))
+                        .filter((n) => !isNaN(n));
+                      if (nums.length === 0) return 'Дължина';
+                      const min = Math.min(...nums);
+                      const max = Math.max(...nums);
+                      return min === max ? `Дължина (${min} см)` : `Дължина (${min}-${max} см)`;
+                    })()}: <span className="text-destructive">*</span>
                   </label>
+
                   {product.subcategory === 'rings' && <RingSizeGuide />}
                 </div>
                 <div className="flex flex-wrap gap-2">
