@@ -12,13 +12,14 @@ export interface CartItem {
   size?: string;
   color?: string;
   category?: string;
+  maxStock?: number;
 }
 
 export type ShippingMethod = "office" | "automat" | "address";
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "id">) => void;
+  addItem: (item: Omit<CartItem, "id">) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,6 +30,7 @@ interface CartContextType {
   setShippingMethod: (method: ShippingMethod) => void;
   total: number;
 }
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -58,19 +60,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("cart_items", JSON.stringify(items));
   }, [items]);
 
-  const addItem = (item: Omit<CartItem, "id">) => {
+  const addItem = (item: Omit<CartItem, "id">): boolean => {
+    // Match by productId AND name (name includes size/color variant info)
+    const existing = items.find((i) => i.productId === item.productId && i.name === item.name);
+    const max = item.maxStock ?? existing?.maxStock ?? Infinity;
+    const currentQty = existing?.quantity ?? 0;
+    const nextQty = Math.min(currentQty + item.quantity, max);
+
+    if (nextQty <= currentQty) return false;
+
     setItems((prev) => {
-      // Match by productId AND name (name includes size/color variant info)
-      const existing = prev.find((i) => i.productId === item.productId && i.name === item.name);
-      if (existing) {
+      const found = prev.find((i) => i.productId === item.productId && i.name === item.name);
+      if (found) {
         return prev.map((i) =>
           i.productId === item.productId && i.name === item.name
-            ? { ...i, quantity: i.quantity + item.quantity }
+            ? { ...i, quantity: Math.min(i.quantity + item.quantity, max), maxStock: item.maxStock ?? i.maxStock }
             : i
         );
       }
-      return [...prev, { ...item, id: crypto.randomUUID() }];
+      return [...prev, { ...item, quantity: nextQty, id: crypto.randomUUID() }];
     });
+    return true;
   };
 
   const removeItem = (productId: string) => {
@@ -83,9 +93,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, quantity } : i))
+      prev.map((i) =>
+        i.productId === productId
+          ? { ...i, quantity: Math.min(quantity, i.maxStock ?? Infinity) }
+          : i
+      )
     );
   };
+
 
   const clearCart = () => {
     setItems([]);

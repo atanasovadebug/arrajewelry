@@ -60,10 +60,12 @@ export function CartDrawer() {
                       <span className="w-8 text-center text-sm">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                        className="p-1 hover:bg-muted rounded"
+                        disabled={item.maxStock !== undefined && item.quantity >= item.maxStock}
+                        className="p-1 hover:bg-muted rounded disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus className="h-4 w-4" />
                       </button>
+
                       <button
                         onClick={() => removeItem(item.productId)}
                         className="p-1 hover:bg-destructive/10 hover:text-destructive rounded ml-auto"
