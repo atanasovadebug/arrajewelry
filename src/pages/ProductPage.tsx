@@ -183,14 +183,24 @@ export default function ProductPage() {
       ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product.price))
       : Number(product.price);
     
-    addItem({
+    const maxStock = hasVariants ? selectedVariantStock : product.stock;
+    const added = addItem({
       productId: product.id,
       name: productName,
       price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
       category: product.category,
+      maxStock,
     });
+    if (!added) {
+      toast({
+        title: "Достигнато е максималното количество",
+        description: "Няма повече налична бройка от този продукт.",
+        variant: "destructive",
+      });
+      return;
+    }
     toast({
       title: "Добавено в количката",
       description: `${productName} x${quantity} беше добавен в количката ви.`,
@@ -248,6 +258,7 @@ export default function ProductPage() {
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
       category: product.category,
+      maxStock: hasVariants ? selectedVariantStock : product.stock,
     });
     navigate("/checkout");
   };
