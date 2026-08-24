@@ -12,13 +12,14 @@ export interface CartItem {
   size?: string;
   color?: string;
   category?: string;
+  maxStock?: number;
 }
 
 export type ShippingMethod = "office" | "automat" | "address";
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "id">) => void;
+  addItem: (item: Omit<CartItem, "id">) => boolean;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -29,6 +30,7 @@ interface CartContextType {
   setShippingMethod: (method: ShippingMethod) => void;
   total: number;
 }
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
