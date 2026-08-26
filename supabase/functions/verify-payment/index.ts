@@ -137,12 +137,51 @@ serve(async (req) => {
       );
     }
 
+    // Reject stale checkout sessions (e.g. an old success link reopened months later)
+    const sessionAgeMs = Date.now() - session.created * 1000;
+    if (sessionAgeMs > 3 * 24 * 60 * 60 * 1000) {
+      console.log(`Stale session rejected: ${sessionId}, age days: ${Math.round(sessionAgeMs / 86400000)}`);
+      return new Response(
+        JSON.stringify({ error: "Session expired" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
     // Extract and sanitize metadata from Stripe session
     const metadata = session.metadata || {};
     const subtotal = parseFloat(metadata.subtotalBGN || metadata.subtotal || "0");
     const shippingCost = parseFloat(metadata.shippingCostBGN || metadata.shippingCost || "0");
     const discountAmount = parseFloat(metadata.discountBGN || "0");
     const total = subtotal - discountAmount + shippingCost;
+
+    // Rebuild cart items from Stripe metadata when the client did not send them
+    let resolvedItems = Array.isArray(cartItems) && cartItems.length > 0 ? cartItems : [];
+    if (resolvedItems.length === 0) {
+      let itemsJson = "";
+      for (let i = 0; i < 10; i++) {
+        const chunk = metadata[`items${i}`];
+        if (!chunk) break;
+        itemsJson += chunk;
+      }
+      if (itemsJson) {
+        try {
+          const parsed = JSON.parse(itemsJson);
+          if (Array.isArray(parsed)) {
+            resolvedItems = parsed.map((it: { i: string; n: string; q: number; p: number }) => ({
+              productId: it.i,
+              name: it.n,
+              quantity: it.q,
+              price: it.p,
+            }));
+          }
+        } catch (e) {
+          console.error("Failed to parse items metadata", e);
+        }
+      }
+    }
 
     // Sanitize all customer data before database insertion
     const sanitizedCustomerName = sanitizeString(metadata.customerName, MAX_NAME_LENGTH);
