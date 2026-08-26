@@ -268,6 +268,21 @@ serve(async (req) => {
       stripeCouponId = coupon.id;
     }
 
+    // Store a compact copy of the cart in Stripe metadata (source of truth for order items)
+    const compactItems = items.map((item) => ({
+      i: item.productId,
+      n: item.name.substring(0, 60),
+      q: item.quantity,
+      p: item.price,
+    }));
+    const itemsMetadata: Record<string, string> = {};
+    const itemsJson = JSON.stringify(compactItems);
+    if (itemsJson.length <= 4500) {
+      for (let i = 0; i * 450 < itemsJson.length && i < 10; i++) {
+        itemsMetadata[`items${i}`] = itemsJson.slice(i * 450, (i + 1) * 450);
+      }
+    }
+
     // Create Stripe checkout session with sanitized data
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -288,6 +303,7 @@ serve(async (req) => {
         discountBGN: discountAmountBGN.toString(),
         discountCode: discountLabel || "",
         shippingCostBGN: shippingCostBGN.toString(),
+        ...itemsMetadata,
       },
       shipping_address_collection: {
         allowed_countries: ["BG"],
