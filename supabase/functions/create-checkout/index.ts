@@ -288,6 +288,7 @@ serve(async (req) => {
         discountBGN: discountAmountBGN.toString(),
         discountCode: discountLabel || "",
         shippingCostBGN: shippingCostBGN.toString(),
+        ...itemsMetadata,
       },
       shipping_address_collection: {
         allowed_countries: ["BG"],
