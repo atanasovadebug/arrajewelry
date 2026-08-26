@@ -221,8 +221,8 @@ serve(async (req) => {
     }
 
     // Create order items with sanitized data
-    if (cartItems && cartItems.length > 0) {
-      const orderItems = cartItems.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
+    if (resolvedItems && resolvedItems.length > 0) {
+      const orderItems = resolvedItems.map((item: { productId: string; name: string; price: number; quantity: number }) => ({
         order_id: order.id,
         product_id: item.productId.substring(0, 100),
         product_name: sanitizeString(item.name, 200),
@@ -239,7 +239,7 @@ serve(async (req) => {
       }
 
       // Decrement product stock for each purchased item
-      for (const item of cartItems) {
+      for (const item of resolvedItems) {
         const productId = item.productId?.substring(0, 100);
         const quantity = Math.max(1, Math.min(Math.floor(item.quantity || 1), 100));
         const size = item.size ? sanitizeString(item.size, 50) : null;
