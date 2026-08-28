@@ -587,7 +587,10 @@ export default function AdminPage() {
       original_price: originalPrice ? parseFloat(originalPrice) : null,
       category,
       subcategory: subcategory || null,
-      stock: totalStock || parseInt(stock) || 0,
+      // Categorized products are sold through their configured variants.
+      // If all sizes/colors are removed (or all variant stocks are zero),
+      // the product must become unavailable instead of keeping stale stock.
+      stock: subcategory ? totalStock : (parseInt(stock) || 0),
       images,
       specifications: specsObject,
       is_active: true,

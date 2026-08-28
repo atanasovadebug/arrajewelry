@@ -190,6 +190,8 @@ export default function ProductPage() {
       price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
+      size: effectiveSelectedSize || undefined,
+      color: selectedType || undefined,
       category: product.category,
       maxStock,
     });
@@ -251,15 +253,25 @@ export default function ProductPage() {
       ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product.price))
       : Number(product.price);
     
-    addItem({
+    const added = addItem({
       productId: product.id,
       name: productName,
       price: finalPrice,
       image: product.images?.[0] || "/placeholder.svg",
       quantity,
+      size: effectiveSelectedSize || undefined,
+      color: selectedType || undefined,
       category: product.category,
       maxStock: hasVariants ? selectedVariantStock : product.stock,
     });
+    if (!added) {
+      toast({
+        title: "Изчерпана наличност",
+        description: "Няма налична бройка от този продукт.",
+        variant: "destructive",
+      });
+      return;
+    }
     navigate("/checkout");
   };
 

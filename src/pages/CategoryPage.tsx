@@ -55,7 +55,7 @@ export default function CategoryPage() {
     queryFn: async () => {
       let query = supabase
         .from("products")
-        .select("*")
+        .select("*, product_variants(stock)")
         .eq("category", dbCategory)
         .eq("is_active", true);
 
@@ -111,7 +111,13 @@ export default function CategoryPage() {
               transition={{ delay: 0.2 }}
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"
             >
-              {products.map((product, index) => (
+              {products.map((product, index) => {
+                const variants = product.product_variants ?? [];
+                const availableStock = variants.length > 0
+                  ? variants.reduce((sum, variant) => sum + variant.stock, 0)
+                  : product.stock;
+
+                return (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -142,12 +148,13 @@ export default function CategoryPage() {
                         </span>
                       )}
                     </div>
-                    {product.stock <= 0 && (
+                    {availableStock <= 0 && (
                       <span className="text-xs text-red-500 mt-1">Изчерпан</span>
                     )}
                   </Link>
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
           ) : (
             <motion.div
