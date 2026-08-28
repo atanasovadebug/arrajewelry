@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { getCorsHeaders, handleCorsPrelight } from "../_shared/cors.ts";
 import { validateCheckoutData, validateCartItem, validateUrl } from "../_shared/validation.ts";
 import { checkRateLimit, getClientIP, rateLimitResponse } from "../_shared/rate-limit.ts";
@@ -18,6 +19,8 @@ interface CartItem {
   quantity: number;
   image: string;
   category?: string;
+  size?: string;
+  color?: string;
 }
 
 interface CheckoutRequest {
@@ -107,7 +110,9 @@ serve(async (req) => {
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!stripeKey || !supabaseUrl || !supabaseServiceKey) {
       console.error("Stripe secret key not configured");
       throw new Error("Payment service unavailable");
     }
@@ -115,6 +120,7 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body: CheckoutRequest = await req.json();
     const { items, customerEmail, customerName, customerPhone, shippingAddress, shippingMethod, notes, discountCode, successUrl, cancelUrl } = body;
@@ -171,6 +177,35 @@ serve(async (req) => {
             status: 400,
           }
         );
+      }
+    }
+
+    // Never trust availability stored in the browser cart. Re-check the
+    // current product/variant stock immediately before creating payment.
+    for (const item of items) {
+      const { data: product, error: productError } = await supabase
+        .from("products")
+        .select("id, stock, is_active, product_variants(size, color, stock)")
+        .eq("id", item.productId)
+        .maybeSingle();
+
+      if (productError || !product || !product.is_active) {
+        return new Response(JSON.stringify({ error: "Product unavailable" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 409,
+        });
+      }
+
+      const variants = Array.isArray(product.product_variants) ? product.product_variants : [];
+      const availableStock = variants.length > 0
+        ? variants.find((variant) => variant.size === item.size && variant.color === item.color)?.stock ?? 0
+        : product.stock;
+
+      if (availableStock < item.quantity) {
+        return new Response(JSON.stringify({ error: "Insufficient stock", productId: item.productId }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 409,
+        });
       }
     }
 
