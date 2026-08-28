@@ -55,6 +55,7 @@ export default function ProductPage() {
         .from("products")
         .select("*")
         .eq("id", productId)
+        .eq("is_active", true)
         .maybeSingle();
       
       if (error) throw error;
