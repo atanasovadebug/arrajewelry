@@ -137,10 +137,6 @@ serve(async (req) => {
         discountPercent = 10;
         discountType = "all";
         discountLabel = "Отстъпка ARRA10 (−10%)";
-      } else if (code === "summer15") {
-        discountPercent = 15;
-        discountType = "all";
-        discountLabel = "Отстъпка SUMMER15 (−15%)";
       }
     }
 
