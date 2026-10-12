@@ -361,23 +361,6 @@ export default function CheckoutPage() {
                       </span>
                     </label>
 
-                    {/* Address */}
-                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "address" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50"}`}>
-                      <div className="flex items-center gap-3">
-                        <RadioGroupItem value="address" />
-                        <div>
-                          <p className="font-medium text-sm">Доставка до адрес (Speedy)</p>
-                          <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO}</p>
-                        </div>
-                      </div>
-                      <span className="font-semibold text-sm">
-                        {subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? (
-                          <span className="text-green-600">Безплатна</span>
-                        ) : (
-                          formatDualCurrency(SHIPPING_COST_ADDRESS_BGN)
-                        )}
-                      </span>
-                    </label>
                   </RadioGroup>
                 </div>
 

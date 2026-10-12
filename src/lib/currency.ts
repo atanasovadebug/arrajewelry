@@ -34,7 +34,7 @@ export function formatBGN(priceInBGN: number): string {
  * Convert EUR threshold to BGN for comparison
  * Free shipping threshold is 100 EUR
  */
-export const FREE_SHIPPING_THRESHOLD_EUR = 100;
+export const FREE_SHIPPING_THRESHOLD_EUR = 150;
 export const FREE_SHIPPING_THRESHOLD_BGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
 
 /**
