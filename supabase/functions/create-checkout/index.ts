@@ -231,7 +231,13 @@ serve(async (req) => {
 
     // EUR to BGN rate (fixed rate)
     const EUR_TO_BGN_RATE = 1.9558;
-    const FREE_SHIPPING_THRESHOLD_EUR = 100;
+    const FREE_SHIPPING_THRESHOLD_EUR = 150;
+    if (shippingMethod === "address") {
+      return new Response(JSON.stringify({ error: "Address delivery is not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
     const SHIPPING_COST_OFFICE_BGN = 5;
     const SHIPPING_COST_AUTOMAT_BGN = 3.12;
     const SHIPPING_COST_ADDRESS_BGN = 10.80;
