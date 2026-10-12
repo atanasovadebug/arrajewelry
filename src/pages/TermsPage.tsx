@@ -63,7 +63,7 @@ export default function TermsPage() {
           <div>
             <h2 className="font-heading text-xl font-semibold">5. Доставка</h2>
             <p className="mt-2 text-muted-foreground">
-              Доставката се извършва чрез куриерска фирма до адрес, офис и автомат, посочен от клиента.
+              Доставката се извършва чрез куриерска фирма до офис или автомат на Speedy, посочен от клиента.
             </p>
             <p className="mt-2 text-muted-foreground">
               Срокът за обработка и изпращане на поръчките е от 1-2 работни дни, ако продуктът е наличен и освен ако не е упоменато друго.
