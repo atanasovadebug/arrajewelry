@@ -155,7 +155,9 @@ export default function CheckoutPage() {
 
   const discountedSubtotal = subtotal - discountAmount;
   const adjustedShippingCost =
-    discountedSubtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : shippingCost;
+    shippingMethod === "address"
+      ? SHIPPING_COST_ADDRESS_BGN
+      : discountedSubtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : shippingCost;
   const discountedTotal = discountedSubtotal + adjustedShippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -361,6 +363,17 @@ export default function CheckoutPage() {
                       </span>
                     </label>
 
+                    {/* Address - always paid */}
+                    <label className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${shippingMethod === "address" ? "border-primary bg-primary/5" : "hover:border-muted-foreground/50"}`}>
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="address" />
+                        <div>
+                          <p className="font-medium text-sm">Доставка до адрес (Speedy)</p>
+                          <p className="text-xs text-muted-foreground">{SHIPPING_TIME_INFO} · Безплатната доставка не важи за адрес</p>
+                        </div>
+                      </div>
+                      <span className="font-semibold text-sm">{formatDualCurrency(SHIPPING_COST_ADDRESS_BGN)}</span>
+                    </label>
                   </RadioGroup>
                 </div>
 

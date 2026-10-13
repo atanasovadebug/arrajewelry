@@ -232,12 +232,6 @@ serve(async (req) => {
     // EUR to BGN rate (fixed rate)
     const EUR_TO_BGN_RATE = 1.9558;
     const FREE_SHIPPING_THRESHOLD_EUR = 150;
-    if (shippingMethod === "address") {
-      return new Response(JSON.stringify({ error: "Address delivery is not available" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
-    }
     const SHIPPING_COST_OFFICE_BGN = 5;
     const SHIPPING_COST_AUTOMAT_BGN = 3.12;
     const SHIPPING_COST_ADDRESS_BGN = 10.80;
@@ -259,7 +253,7 @@ serve(async (req) => {
     const discountedSubtotalBGN = subtotalBGN - discountAmountBGN;
     const freeShippingThresholdBGN = FREE_SHIPPING_THRESHOLD_EUR * EUR_TO_BGN_RATE;
     const baseShippingCostBGN = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : shippingMethod === "address" ? SHIPPING_COST_ADDRESS_BGN : SHIPPING_COST_OFFICE_BGN;
-    const shippingCostBGN = discountedSubtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
+    const shippingCostBGN = shippingMethod !== "address" && discountedSubtotalBGN >= freeShippingThresholdBGN ? 0 : baseShippingCostBGN;
     const shippingLabel = shippingMethod === "automat" ? "Доставка Speedy Автомат" : shippingMethod === "address" ? "Доставка до адрес (Speedy)" : "Доставка до офис (Speedy)";
 
     // Convert BGN prices to EUR for Stripe (BGN is no longer supported)

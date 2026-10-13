@@ -110,7 +110,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const baseShippingCost = shippingMethod === "automat" ? SHIPPING_COST_AUTOMAT_BGN : shippingMethod === "address" ? SHIPPING_COST_ADDRESS_BGN : SHIPPING_COST_OFFICE_BGN;
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : baseShippingCost;
+  const shippingCost = shippingMethod !== "address" && subtotal >= FREE_SHIPPING_THRESHOLD_BGN ? 0 : baseShippingCost;
   const total = subtotal + shippingCost;
 
   return (
