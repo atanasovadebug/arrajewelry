@@ -232,9 +232,9 @@ serve(async (req) => {
     // EUR to BGN rate (fixed rate)
     const EUR_TO_BGN_RATE = 1.9558;
     const FREE_SHIPPING_THRESHOLD_EUR = 150;
-    const SHIPPING_COST_OFFICE_BGN = 5;
+    const SHIPPING_COST_OFFICE_BGN = 2.81 * EUR_TO_BGN_RATE;
     const SHIPPING_COST_AUTOMAT_BGN = 3.12;
-    const SHIPPING_COST_ADDRESS_BGN = 10.80;
+    const SHIPPING_COST_ADDRESS_BGN = 7.48 * EUR_TO_BGN_RATE;
     
     // Calculate totals in BGN first
     const subtotalBGN = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
