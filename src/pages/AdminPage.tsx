@@ -118,7 +118,7 @@ export default function AdminPage() {
   const getSizeOptions = (sub: string) => {
     switch (sub) {
       case 'rings':
-        return ['3', '4', '4.5', '5', '6', '7', '8', '9', '10'];
+        return ['3', '4', '4.5', '5', '5.5', '6', '6.5', '7', '8', '9', '10'];
       case 'necklaces':
         return ['35', '36', '36.5', '37', '38', '39', '40', '41', '42', '43', '44', '45'];
       case 'bracelets':
