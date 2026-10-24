@@ -1179,7 +1179,7 @@ export default function AdminPage() {
                       <p className="text-sm text-muted-foreground">
                         {categories.find(c => c.value === product.category)?.label}
                       </p>
-                      <p className="text-primary font-semibold">{product.price.toFixed(2)} лв.</p>
+                      <p className="text-primary font-semibold">{(product.price / 1.9558).toFixed(2)} €</p>
                       
                     </div>
                     <div className="flex flex-col gap-2">

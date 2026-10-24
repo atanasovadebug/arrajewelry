@@ -95,7 +95,7 @@ export function CartDrawer() {
               </div>
               {shippingCost > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} € / {FREE_SHIPPING_THRESHOLD_BGN.toFixed(2)} лв.
+                  Безплатна доставка над {FREE_SHIPPING_THRESHOLD_EUR} €
                 </p>
               )}
               <p className="text-xs text-primary font-medium">{SHIPPING_TIME_INFO}</p>
