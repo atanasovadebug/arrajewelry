@@ -8,7 +8,7 @@ export const EUR_TO_BGN_RATE = 1.9558;
  */
 export function formatDualCurrency(priceInBGN: number): string {
   const priceInEUR = priceInBGN / EUR_TO_BGN_RATE;
-  return `${priceInEUR.toFixed(2)} € / ${priceInBGN.toFixed(2)} лв.`;
+  return `${priceInEUR.toFixed(2)} €`;
 }
 
 /**
