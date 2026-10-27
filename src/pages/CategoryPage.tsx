@@ -43,7 +43,7 @@ export default function CategoryPage() {
     description: "Разгледайте нашата красива колекция бижута",
   };
 
-  const dbCategory = categorySlugToDb[category || ""] || category;
+  const dbCategory = categorySlugToDb[category || ""] || "__none__";
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", dbCategory, subcategory],
