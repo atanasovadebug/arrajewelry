@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 
 const categories = [
   { name: "Ръчна изработка", href: "/category/handmade" },
-  { name: "Неръждаема стомана", href: "/category/stainless-steel" },
   { name: "Сребро", href: "/category/silver" },
   { name: "Мойсанит", href: "/category/moissanite" },
 ];

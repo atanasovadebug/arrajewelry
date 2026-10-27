@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import categoryHandmade from "@/assets/category-handmade.jpg";
-import categorySteel from "@/assets/category-steel.jpg";
 import categorySilver from "@/assets/category-silver.jpg";
 import categoryMoissanite from "@/assets/category-moissanite.jpg";
 import { VideoSparkleOverlay } from "./VideoSparkleOverlay";
@@ -11,12 +10,6 @@ const categories = [
     description: "Уникални авторски творби",
     image: categoryHandmade,
     href: "/category/handmade",
-  },
-  {
-    name: "Неръждаема стомана",
-    description: "Модерни и издръжливи",
-    image: categorySteel,
-    href: "/category/stainless-steel",
   },
   {
     name: "Сребро",
@@ -86,7 +79,7 @@ export function CategoryGrid() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-5xl mx-auto"
         >
           {categories.map((category, index) => (
             <motion.div 
