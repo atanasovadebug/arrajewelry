@@ -25,16 +25,6 @@ const categories = [
     ],
   },
   {
-    name: "Неръждаема стомана",
-    href: "/category/stainless-steel",
-    subcategories: [
-      { name: "Пръстени", slug: "rings" },
-      { name: "Обеци", slug: "earrings" },
-      { name: "Колиета", slug: "necklaces" },
-      { name: "Гривни", slug: "bracelets" },
-    ],
-  },
-  {
     name: "Сребро",
     href: "/category/silver",
     subcategories: [

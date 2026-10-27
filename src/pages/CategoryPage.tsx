@@ -12,10 +12,6 @@ const categoryInfo: Record<string, { title: string; description: string }> = {
     title: "Ръчна изработка",
     description: "Уникални авторски бижута, изработени с внимание към детайла",
   },
-  "stainless-steel": {
-    title: "Неръждаема стомана",
-    description: "Модерни и издръжливи бижута, създадени да издържат теста на времето",
-  },
   silver: {
     title: "Сребърна колекция",
     description: "Класически сребърни бижута за вечна елегантност",
@@ -36,7 +32,6 @@ const subcategoryNames: Record<string, string> = {
 // Map URL slugs to database category values
 const categorySlugToDb: Record<string, string> = {
   handmade: "handmade",
-  "stainless-steel": "stainless-steel",
   silver: "silver",
   moissanite: "moissanite",
 };
@@ -48,7 +43,7 @@ export default function CategoryPage() {
     description: "Разгледайте нашата красива колекция бижута",
   };
 
-  const dbCategory = categorySlugToDb[category || ""] || category;
+  const dbCategory = categorySlugToDb[category || ""] || "__none__";
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", dbCategory, subcategory],
