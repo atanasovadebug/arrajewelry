@@ -36,6 +36,13 @@
 
     --radius: 0.25rem;
 
+    --noir: 0 0% 4%;
+    --noir-foreground: 0 0% 97%;
+    --gold: 41 42% 58%;
+    --gold-bright: 43 58% 80%;
+    --gold-deep: 38 34% 28%;
+
+
     --font-heading: 'Cormorant Garamond', serif;
     --font-body: 'Inter', sans-serif;
 
@@ -152,4 +159,98 @@
   .icon-subtle:hover {
     filter: drop-shadow(0 2px 4px hsl(var(--foreground) / 0.15));
   }
+
+  /* Black Friday banner */
+  .bf-glow {
+    background:
+      radial-gradient(ellipse 55% 130% at 50% 50%, hsl(var(--gold) / 0.16) 0%, transparent 70%),
+      radial-gradient(ellipse 90% 100% at 50% 120%, hsl(var(--gold-deep) / 0.35) 0%, transparent 70%);
+  }
+
+  .bf-sheen {
+    background: linear-gradient(
+      105deg,
+      transparent 32%,
+      hsl(var(--gold-bright) / 0.08) 44%,
+      hsl(var(--noir-foreground) / 0.13) 50%,
+      hsl(var(--gold-bright) / 0.08) 56%,
+      transparent 68%
+    );
+    background-size: 250% 100%;
+    animation: bf-sheen 11s ease-in-out infinite;
+  }
+
+  .bf-sparkle {
+    position: absolute;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle,
+      hsl(var(--noir-foreground)) 0%,
+      hsl(var(--gold-bright) / 0.75) 35%,
+      transparent 72%
+    );
+    animation: bf-twinkle ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  .bf-star {
+    position: absolute;
+    clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+    background: linear-gradient(
+      180deg,
+      hsl(var(--noir-foreground)) 0%,
+      hsl(var(--gold-bright)) 45%,
+      hsl(var(--gold)) 100%
+    );
+    filter: drop-shadow(0 0 6px hsl(var(--gold-bright) / 0.7));
+    animation: bf-twinkle ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  .bf-rule {
+    background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.75), transparent);
+  }
 }
+
+@keyframes bf-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.55) rotate(0deg);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1) rotate(25deg);
+  }
+  60% {
+    opacity: 0.55;
+    transform: scale(0.85) rotate(35deg);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.05) rotate(45deg);
+  }
+}
+
+@keyframes bf-sheen {
+  0% {
+    background-position: 130% 0;
+  }
+  55%,
+  100% {
+    background-position: -30% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bf-sheen,
+  .bf-sparkle,
+  .bf-star {
+    animation: none;
+  }
+  .bf-sparkle,
+  .bf-star {
+    opacity: 0.5;
+  }
+}
+
