@@ -25,7 +25,6 @@ import {
 const categoryNames: Record<string, string> = {
   moissanite: "Мойсанит",
   silver: "Сребро",
-  "stainless-steel": "Неръждаема стомана",
   handmade: "Ръчна изработка",
 };
 
