@@ -15,6 +15,11 @@ import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { formatDualCurrency, formatEUR, bgnToEur, eurToBgn } from '@/lib/currency';
 
+// Keeps the stored amount untouched when an EUR field was not really changed,
+// so re-saving a product cannot drift its price by a rounding cent.
+const resolvePriceBGN = (eurValue: number, baseBGN: number | null | undefined): number =>
+  baseBGN != null && bgnToEur(baseBGN) === eurValue ? baseBGN : eurToBgn(eurValue);
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
 
@@ -104,6 +109,8 @@ export default function AdminPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
+  const [basePriceBGN, setBasePriceBGN] = useState<number | null>(null);
+  const [baseOriginalPriceBGN, setBaseOriginalPriceBGN] = useState<number | null>(null);
   const [category, setCategory] = useState('');
   const [subcategory, setSubcategory] = useState('');
   const [stock, setStock] = useState('0');
@@ -136,7 +143,7 @@ export default function AdminPage() {
   ];
 
   // Product variants state
-  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number; price?: number | null }>>([]);
+  const [productVariants, setProductVariants] = useState<Array<{ size: string; color: string; stock: number; price?: number | null; dbPrice?: number | null }>>([]);
 
   // Check authentication and admin role
   useEffect(() => {
@@ -435,6 +442,8 @@ export default function AdminPage() {
     setSelectedTypes([]);
     setProductVariants([]);
     setEditingProduct(null);
+    setBasePriceBGN(null);
+    setBaseOriginalPriceBGN(null);
   };
 
   const openNewProductForm = () => {
@@ -448,6 +457,8 @@ export default function AdminPage() {
     setDescription(product.description || '');
     setPrice(String(bgnToEur(product.price)));
     setOriginalPrice(product.original_price ? String(bgnToEur(product.original_price)) : '');
+    setBasePriceBGN(product.price);
+    setBaseOriginalPriceBGN(product.original_price ?? null);
     setCategory(product.category);
     setSubcategory(product.subcategory || '');
     setStock(product.stock.toString());
@@ -468,6 +479,7 @@ export default function AdminPage() {
     const loadedVariants = (variants || []).map(v => ({
       ...v,
       price: v.price != null ? bgnToEur(v.price) : null,
+      dbPrice: v.price ?? null,
     }));
     setProductVariants(loadedVariants);
     
@@ -571,11 +583,11 @@ export default function AdminPage() {
     const hasSizeVariants = subcategory === 'rings' || subcategory === 'bracelets' || subcategory === 'necklaces' || subcategory === 'earrings';
     const effectiveSizes = hasSizeVariants ? selectedSizes : (selectedTypes.length > 0 ? ['one-size'] : []);
     
-    const allVariants: Array<{ size: string; color: string; stock: number; price?: number | null }> = [];
+    const allVariants: Array<{ size: string; color: string; stock: number; price?: number | null; dbPrice?: number | null }> = [];
     for (const size of effectiveSizes) {
       for (const color of selectedTypes) {
         const existing = productVariants.find(v => v.size === size && v.color === color);
-        allVariants.push({ size, color, stock: existing?.stock ?? 0, price: existing?.price ?? null });
+        allVariants.push({ size, color, stock: existing?.stock ?? 0, price: existing?.price ?? null, dbPrice: existing?.dbPrice ?? null });
       }
     }
     
@@ -585,8 +597,8 @@ export default function AdminPage() {
     const productData = {
       name: name.trim(),
       description: description.trim() || null,
-      price: eurToBgn(parseFloat(price)),
-      original_price: originalPrice ? eurToBgn(parseFloat(originalPrice)) : null,
+      price: resolvePriceBGN(parseFloat(price), basePriceBGN),
+      original_price: originalPrice ? resolvePriceBGN(parseFloat(originalPrice), baseOriginalPriceBGN) : null,
       category,
       subcategory: subcategory || null,
       // Categorized products are sold through their configured variants.
@@ -624,7 +636,7 @@ export default function AdminPage() {
               size: v.size,
               color: v.color,
               stock: v.stock,
-              price: v.price != null ? eurToBgn(v.price) : null
+              price: v.price != null ? resolvePriceBGN(v.price, v.dbPrice) : null
             })));
           
           if (variantError && import.meta.env.DEV) {
@@ -659,7 +671,7 @@ export default function AdminPage() {
               size: v.size,
               color: v.color,
               stock: v.stock,
-              price: v.price != null ? eurToBgn(v.price) : null
+              price: v.price != null ? resolvePriceBGN(v.price, v.dbPrice) : null
             })));
           
           if (variantError && import.meta.env.DEV) {
