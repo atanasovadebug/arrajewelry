@@ -55,7 +55,7 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-heading text-lg text-white/70 mb-8 leading-relaxed font-light tracking-wide"
           >
-            Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от неръждаема стомана, сребро и мойсанит.
+            Открийте внимателно подбрана колекция от бижута – авторски ръчно изработени творби и изискани модели от сребро и мойсанит.
           </motion.p>
           
           <motion.div
