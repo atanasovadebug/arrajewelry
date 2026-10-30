@@ -31,6 +31,21 @@ export function formatBGN(priceInBGN: number): string {
 }
 
 /**
+ * Convert a BGN amount to EUR (rounded to cents)
+ */
+export function bgnToEur(priceInBGN: number): number {
+  return Math.round((priceInBGN / EUR_TO_BGN_RATE) * 100) / 100;
+}
+
+/**
+ * Convert an EUR amount to BGN (rounded to cents)
+ */
+export function eurToBgn(priceInEUR: number): number {
+  return Math.round((priceInEUR * EUR_TO_BGN_RATE) * 100) / 100;
+}
+
+
+/**
  * Convert EUR threshold to BGN for comparison
  * Free shipping threshold is 100 EUR
  */

@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye, MessageSquare, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
-import { formatDualCurrency } from '@/lib/currency';
+import { formatDualCurrency, formatEUR, bgnToEur, eurToBgn } from '@/lib/currency';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
@@ -446,8 +446,8 @@ export default function AdminPage() {
     setEditingProduct(product);
     setName(product.name);
     setDescription(product.description || '');
-    setPrice(product.price.toString());
-    setOriginalPrice(product.original_price?.toString() || '');
+    setPrice(String(bgnToEur(product.price)));
+    setOriginalPrice(product.original_price ? String(bgnToEur(product.original_price)) : '');
     setCategory(product.category);
     setSubcategory(product.subcategory || '');
     setStock(product.stock.toString());
@@ -465,7 +465,10 @@ export default function AdminPage() {
       .select('size, color, stock, price')
       .eq('product_id', product.id);
     
-    const loadedVariants = variants || [];
+    const loadedVariants = (variants || []).map(v => ({
+      ...v,
+      price: v.price != null ? bgnToEur(v.price) : null,
+    }));
     setProductVariants(loadedVariants);
     
     // Derive selectedSizes and selectedTypes from actual variants
@@ -582,8 +585,8 @@ export default function AdminPage() {
     const productData = {
       name: name.trim(),
       description: description.trim() || null,
-      price: parseFloat(price),
-      original_price: originalPrice ? parseFloat(originalPrice) : null,
+      price: eurToBgn(parseFloat(price)),
+      original_price: originalPrice ? eurToBgn(parseFloat(originalPrice)) : null,
       category,
       subcategory: subcategory || null,
       // Categorized products are sold through their configured variants.
@@ -621,7 +624,7 @@ export default function AdminPage() {
               size: v.size,
               color: v.color,
               stock: v.stock,
-              price: v.price || null
+              price: v.price != null ? eurToBgn(v.price) : null
             })));
           
           if (variantError && import.meta.env.DEV) {
@@ -656,7 +659,7 @@ export default function AdminPage() {
               size: v.size,
               color: v.color,
               stock: v.stock,
-              price: v.price || null
+              price: v.price != null ? eurToBgn(v.price) : null
             })));
           
           if (variantError && import.meta.env.DEV) {
@@ -780,7 +783,7 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="price">Цена (лв.) *</Label>
+                      <Label htmlFor="price">Цена (€) *</Label>
                       <Input
                         id="price"
                         type="number"
@@ -792,7 +795,7 @@ export default function AdminPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="originalPrice">Стара цена (лв.)</Label>
+                      <Label htmlFor="originalPrice">Стара цена (€)</Label>
                       <Input
                         id="originalPrice"
                         type="number"
@@ -943,7 +946,7 @@ export default function AdminPage() {
                                           />
                                         </div>
                                         <div className="flex items-center gap-1">
-                                          <span className="text-xs text-muted-foreground">лв:</span>
+                                          <span className="text-xs text-muted-foreground">€:</span>
                                           <Input
                                             type="number"
                                             min="0"
@@ -1178,7 +1181,7 @@ export default function AdminPage() {
                       <p className="text-sm text-muted-foreground">
                         {categories.find(c => c.value === product.category)?.label}
                       </p>
-                      <p className="text-primary font-semibold">{(product.price / 1.9558).toFixed(2)} €</p>
+                      <p className="text-primary font-semibold">{formatEUR(product.price)}</p>
                       
                     </div>
                     <div className="flex flex-col gap-2">
