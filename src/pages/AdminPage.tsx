@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye, MessageSquare, Check } from 'lucide-react';
+import { Trash2, Plus, Upload, X, Edit2, ArrowLeft, Loader2, LogOut, Package, ShoppingBag, Eye, MessageSquare, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { formatDualCurrency, formatEUR, bgnToEur, eurToBgn } from '@/lib/currency';
@@ -542,6 +542,14 @@ export default function AdminPage() {
 
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= images.length) return;
+    const updated = [...images];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    setImages(updated);
   };
 
   const addSpecification = () => {
@@ -1084,6 +1092,26 @@ export default function AdminPage() {
                         >
                           <X className="h-3 w-3" />
                         </button>
+                        <div className="absolute bottom-1 left-1 right-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => moveImage(index, -1)}
+                            disabled={index === 0}
+                            className="bg-background/90 text-foreground rounded-full p-0.5 disabled:opacity-30 border border-border"
+                            title="Премести наляво"
+                          >
+                            <ChevronLeft className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveImage(index, 1)}
+                            disabled={index === images.length - 1}
+                            className="bg-background/90 text-foreground rounded-full p-0.5 disabled:opacity-30 border border-border"
+                            title="Премести надясно"
+                          >
+                            <ChevronRight className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     <label className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
