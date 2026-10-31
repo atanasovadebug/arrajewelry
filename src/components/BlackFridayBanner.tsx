@@ -74,7 +74,7 @@ export function BlackFridayBanner() {
       <div className="bf-sheen pointer-events-none absolute inset-0" />
 
       <div className="bf-rule pointer-events-none absolute inset-x-0 top-0 h-px" />
-      <div className="bf-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-20" />
+      <div className="bf-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-40" />
 
       <div className="relative container mx-auto px-4 py-16 text-center md:py-24">
         <p className="bf-eyebrow text-xs uppercase tracking-[0.42em] text-gold-bright md:text-sm">
