@@ -215,6 +215,20 @@
   .bf-rule {
     background: linear-gradient(90deg, transparent, hsl(var(--gold) / 0.75), transparent);
   }
+
+  .bf-eyebrow {
+    text-shadow: 0 0 22px hsl(var(--gold-bright) / 0.45);
+  }
+
+  .bf-fade-bottom {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--noir) / 0) 0%,
+      hsl(0 0% 0% / 0.6) 65%,
+      hsl(0 0% 0%) 100%
+    );
+  }
+
 }
 
 @keyframes bf-twinkle {
