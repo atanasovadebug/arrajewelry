@@ -127,14 +127,8 @@ export default function CheckoutPage() {
 
   const handleApplyDiscount = () => {
     setDiscountError("");
-    const code = normalizePromoCode(discountCode);
-    const sofiaDate = getSofiaDateKey();
-
-    if (code === "arra10") {
-      setAppliedDiscount({ code: "arra10", type: "all", percent: 10 });
-    } else {
-      setDiscountError("Грешен код, опитайте отново!");
-    }
+    // Promo codes are paused: no code is active at the moment.
+    setDiscountError("Грешен код, опитайте отново!");
   };
 
   const handleRemoveDiscount = () => {

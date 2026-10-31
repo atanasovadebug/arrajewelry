@@ -130,15 +130,7 @@ serve(async (req) => {
     let discountType: "all" | "moissanite" | null = null;
     let discountLabel = "";
 
-    if (discountCode) {
-      const code = normalizePromoCode(discountCode);
-
-      if (code === "arra10") {
-        discountPercent = 10;
-        discountType = "all";
-        discountLabel = "Отстъпка ARRA10 (−10%)";
-      }
-    }
+    // Promo codes are paused: no code is accepted server-side at the moment.
 
     // Validate URLs
     if (!successUrl || !cancelUrl || !validateUrl(successUrl) || !validateUrl(cancelUrl)) {
