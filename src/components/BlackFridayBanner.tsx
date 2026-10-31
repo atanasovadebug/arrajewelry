@@ -11,16 +11,24 @@ function seeded(seed: number) {
 
 const rand = seeded(20261101);
 
-const SPARKLES = Array.from({ length: 46 }, (_, id) => {
+// Sparkles only live around the edges so they never sit on top of the words.
+function pickSpot() {
+  const band = rand();
+  if (band < 0.3) return { left: rand() * 13, top: rand() * 100 };
+  if (band < 0.6) return { left: 87 + rand() * 13, top: rand() * 100 };
+  if (band < 0.8) return { left: rand() * 100, top: rand() * 15 };
+  return { left: rand() * 100, top: 85 + rand() * 15 };
+}
+
+const SPARKLES = Array.from({ length: 48 }, (_, id) => {
+  const spot = pickSpot();
   const star = rand() > 0.6;
   return {
     id,
-    left: rand() * 100,
-    top: rand() * 100,
+    ...spot,
     size: (star ? 8 : 3) + rand() * (star ? 12 : 5),
     delay: rand() * 7,
     duration: 2.8 + rand() * 4.6,
-    peak: 0.3 + rand() * 0.55,
     star,
   };
 });
@@ -44,7 +52,6 @@ export function BlackFridayBanner() {
                 clipPath: STAR_CLIP,
                 animationDelay: `${s.delay}s`,
                 animationDuration: `${s.duration}s`,
-                ["--peak" as string]: s.peak,
               }}
             />
           ) : (
@@ -67,20 +74,22 @@ export function BlackFridayBanner() {
       <div className="bf-sheen pointer-events-none absolute inset-0" />
 
       <div className="bf-rule pointer-events-none absolute inset-x-0 top-0 h-px" />
-      <div className="bf-rule pointer-events-none absolute inset-x-0 bottom-0 h-px" />
+      <div className="bf-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-40" />
 
       <div className="relative container mx-auto px-4 py-16 text-center md:py-24">
-        <p className="text-[11px] uppercase tracking-[0.5em] text-gold-bright md:text-xs">
+        <p className="bf-eyebrow text-xs uppercase tracking-[0.42em] text-gold-bright md:text-sm">
           Black Friday Sale
         </p>
 
-        <h2 className="mt-5 font-heading text-5xl font-light leading-[1.05] tracking-wide md:text-7xl lg:text-8xl">
-          До <span className="italic text-gold-bright">-50%</span> отстъпка
+        <h2 className="mt-5 font-display text-5xl font-light leading-[1.05] tracking-wide md:text-7xl lg:text-8xl">
+          До{" "}
+          <span className="-mx-1 italic text-gold-bright md:-mx-2">-50%</span>{" "}
+          отстъпка
         </h2>
 
         <div className="mt-8 flex items-center justify-center gap-5 md:gap-8">
           <span className="bf-rule h-px w-12 md:w-20" />
-          <span className="text-xs uppercase tracking-[0.4em] text-noir-foreground/85 md:text-sm">
+          <span className="pl-[0.4em] text-xs uppercase tracking-[0.4em] text-noir-foreground/85 md:text-sm">
             01 – 06.11
           </span>
           <span className="bf-rule h-px w-12 md:w-20" />
