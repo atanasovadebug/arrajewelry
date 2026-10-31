@@ -111,6 +111,9 @@ export default function CategoryPage() {
                 const availableStock = variants.length > 0
                   ? variants.reduce((sum, variant) => sum + variant.stock, 0)
                   : product.stock;
+                const discountPct = product.original_price && Number(product.original_price) > Number(product.price)
+                  ? Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)
+                  : 0;
 
                 return (
                 <motion.div
@@ -123,21 +126,26 @@ export default function CategoryPage() {
                     to={`/product/${product.id}`}
                     className="group block"
                   >
-                    <div className="aspect-square overflow-hidden rounded-sm bg-secondary/30 mb-3">
+                    <div className="relative aspect-square overflow-hidden rounded-sm bg-secondary/30 mb-3">
                       <img
                         src={product.images?.[0] || "/placeholder.svg"}
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
+                      {discountPct > 0 && (
+                        <span className="absolute top-2 left-2 rounded-sm bg-destructive px-2 py-0.5 text-xs font-semibold tracking-wide text-destructive-foreground shadow-sm">
+                          -{discountPct}%
+                        </span>
+                      )}
                     </div>
                     <h3 className="font-body font-medium text-sm md:text-base group-hover:text-primary transition-colors line-clamp-2">
                       {product.name}
                     </h3>
-                    <div className="flex flex-col gap-1 mt-1">
-                      <span className="font-heading font-semibold text-primary text-sm">
+                    <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mt-1">
+                      <span className={`font-heading font-semibold text-sm ${discountPct > 0 ? "text-destructive" : "text-primary"}`}>
                         {formatDualCurrency(Number(product.price))}
                       </span>
-                      {product.original_price && product.original_price > product.price && (
+                      {discountPct > 0 && (
                         <span className="text-xs text-muted-foreground line-through">
                           {formatDualCurrency(Number(product.original_price))}
                         </span>
