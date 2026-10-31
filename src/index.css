@@ -116,6 +116,11 @@
     font-family: var(--font-heading);
     @apply tracking-tight;
   }
+
+  .font-display {
+    font-family: var(--font-heading);
+  }
+
   
   .text-balance {
     text-wrap: balance;

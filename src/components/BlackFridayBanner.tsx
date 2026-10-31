@@ -20,7 +20,6 @@ const SPARKLES = Array.from({ length: 46 }, (_, id) => {
     size: (star ? 8 : 3) + rand() * (star ? 12 : 5),
     delay: rand() * 7,
     duration: 2.8 + rand() * 4.6,
-    peak: 0.3 + rand() * 0.55,
     star,
   };
 });
@@ -44,7 +43,6 @@ export function BlackFridayBanner() {
                 clipPath: STAR_CLIP,
                 animationDelay: `${s.delay}s`,
                 animationDuration: `${s.duration}s`,
-                ["--peak" as string]: s.peak,
               }}
             />
           ) : (
@@ -74,7 +72,7 @@ export function BlackFridayBanner() {
           Black Friday Sale
         </p>
 
-        <h2 className="mt-5 font-heading text-5xl font-light leading-[1.05] tracking-wide md:text-7xl lg:text-8xl">
+        <h2 className="mt-5 font-display text-5xl font-light leading-[1.05] tracking-wide md:text-7xl lg:text-8xl">
           До <span className="italic text-gold-bright">-50%</span> отстъпка
         </h2>
 
