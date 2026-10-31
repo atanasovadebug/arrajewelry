@@ -426,9 +426,9 @@ export default function ProductPage() {
                     {formatDualCurrency(currentPrice)}
                   </span>
                   {product.original_price && product.original_price > currentPrice && (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                    <span className="inline-flex items-center rounded-sm bg-destructive px-2.5 py-1 text-sm font-semibold tracking-wide text-destructive-foreground">
                       -{Math.round((1 - currentPrice / Number(product.original_price)) * 100)}%
-                    </Badge>
+                    </span>
                   )}
                 </div>
                 {product.original_price && product.original_price > currentPrice && (
