@@ -137,6 +137,11 @@ export default function CategoryPage() {
                       <span className="font-heading font-semibold text-sm text-primary">
                         {formatDualCurrency(Number(product.price))}
                       </span>
+                      {product.original_price != null && Number(product.original_price) > Number(product.price) && (
+                        <span className="text-xs text-muted-foreground line-through">
+                          {formatDualCurrency(Number(product.original_price))}
+                        </span>
+                      )}
                     </div>
                     {availableStock <= 0 && (
                       <span className="text-xs text-red-500 mt-1">Изчерпан</span>
