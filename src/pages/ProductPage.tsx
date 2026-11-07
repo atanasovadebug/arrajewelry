@@ -429,6 +429,11 @@ export default function ProductPage() {
                   <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
                     {formatDualCurrency(currentPrice)}
                   </span>
+                  {showOriginalPrice && (
+                    <span className="font-heading text-lg text-muted-foreground line-through">
+                      {formatDualCurrency(originalPrice!)}
+                    </span>
+                  )}
                 </div>
               </div>
               
