@@ -139,6 +139,10 @@ export default function ProductPage() {
     ? (getVariantPrice(effectiveSelectedSize, selectedType) ?? Number(product?.price ?? 0))
     : Number(product?.price ?? 0);
 
+  // Original (pre-discount) price, shown crossed out only when it differs
+  const originalPrice = product?.original_price != null ? Number(product.original_price) : null;
+  const showOriginalPrice = originalPrice !== null && originalPrice > currentPrice;
+
   const handleAddToCart = () => {
     if (!product) return;
     if (requiresSize && !selectedSize) {
@@ -425,6 +429,11 @@ export default function ProductPage() {
                   <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
                     {formatDualCurrency(currentPrice)}
                   </span>
+                  {showOriginalPrice && (
+                    <span className="font-heading text-lg text-muted-foreground line-through">
+                      {formatDualCurrency(originalPrice!)}
+                    </span>
+                  )}
                 </div>
               </div>
               
