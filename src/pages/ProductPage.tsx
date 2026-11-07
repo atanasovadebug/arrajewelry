@@ -425,17 +425,7 @@ export default function ProductPage() {
                   <span className="font-heading text-2xl md:text-3xl font-semibold text-primary">
                     {formatDualCurrency(currentPrice)}
                   </span>
-                  {product.original_price && product.original_price > currentPrice && (
-                    <span className="inline-flex items-center rounded-sm bg-destructive px-2.5 py-1 text-sm font-semibold tracking-wide text-destructive-foreground">
-                      -{Math.round((1 - currentPrice / Number(product.original_price)) * 100)}%
-                    </span>
-                  )}
                 </div>
-                {product.original_price && product.original_price > currentPrice && (
-                  <span className="text-base text-muted-foreground line-through">
-                    {formatDualCurrency(Number(product.original_price))}
-                  </span>
-                )}
               </div>
               
               {inStock ? (
