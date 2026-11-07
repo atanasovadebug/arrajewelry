@@ -111,9 +111,6 @@ export default function CategoryPage() {
                 const availableStock = variants.length > 0
                   ? variants.reduce((sum, variant) => sum + variant.stock, 0)
                   : product.stock;
-                const discountPct = product.original_price && Number(product.original_price) > Number(product.price)
-                  ? Math.round((1 - Number(product.price) / Number(product.original_price)) * 100)
-                  : 0;
 
                 return (
                 <motion.div
@@ -132,24 +129,14 @@ export default function CategoryPage() {
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      {discountPct > 0 && (
-                        <span className="absolute top-2 left-2 rounded-sm bg-destructive px-2 py-0.5 text-xs font-semibold tracking-wide text-destructive-foreground shadow-sm">
-                          -{discountPct}%
-                        </span>
-                      )}
                     </div>
                     <h3 className="font-body font-medium text-sm md:text-base group-hover:text-primary transition-colors line-clamp-2">
                       {product.name}
                     </h3>
                     <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 mt-1">
-                      <span className={`font-heading font-semibold text-sm ${discountPct > 0 ? "text-destructive" : "text-primary"}`}>
+                      <span className="font-heading font-semibold text-sm text-primary">
                         {formatDualCurrency(Number(product.price))}
                       </span>
-                      {discountPct > 0 && (
-                        <span className="text-xs text-muted-foreground line-through">
-                          {formatDualCurrency(Number(product.original_price))}
-                        </span>
-                      )}
                     </div>
                     {availableStock <= 0 && (
                       <span className="text-xs text-red-500 mt-1">Изчерпан</span>
